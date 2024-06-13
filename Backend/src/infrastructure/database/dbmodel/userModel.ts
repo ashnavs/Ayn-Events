@@ -14,6 +14,7 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   favorites: { type: [String], default: [] },
   is_verified: { type: Boolean, default:false },
+  is_google: { type: Boolean, default:false }
 
 
 });

@@ -85,6 +85,15 @@ export default {
             email:existingUser.email
         }
         return {token,user}
+    },
+
+    googleUser:async(email:string) => {
+        const existingUser = await getUserbyEMail(email);
+
+        if(!existingUser || !existingUser.password){
+            throw new Error('User not found');
+        }
+
     }
 
 

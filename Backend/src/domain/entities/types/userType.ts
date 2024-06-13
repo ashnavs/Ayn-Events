@@ -4,4 +4,5 @@ export interface IUser {
     password?: string;
     favorites?: string[];
     is_verified?: boolean;
+    is_google?: boolean;
 }

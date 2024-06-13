@@ -8,25 +8,10 @@ import sendOTPEmail  from '../../utils/emailUtils'
 export default {
   userRegistration: async(req:Request, res:Response, next:NextFunction) => {
     try {
-      // const { name, email, password } = req.body;
-      // console.log(req.body);
+
       
       const user = await userInteractor.registerUser(req.body);
-      // if(user){
-      //   if (!user.email || !user.name) {
-      //     throw new Error("email not there")
-      //   }
-       
-      //   // const otp = generateOTP();
-        
-      //   // const SessionData = req.session
-      //   // req.session.otp = otp;
-      //   // console.log("req.session.otp",req.session.otp);
-      //   // req.session.otpGeneratedAt = Date.now();
-      //   // console.log("Session DATA",req.session);
-        
-      //   // sendOTPEmail(user.email,otp,req,user.name);
-      // }
+     
       console.log(user);
       res.status(200).json({message :"registration success" , user});
 
@@ -35,6 +20,8 @@ export default {
       res.status(500).json(error);
     }
   },
+
+
 
   verifyOTP: async(req:Request, res:Response, next:NextFunction) => {
       console.log("boodddghyghsd",req.body);
@@ -68,6 +55,12 @@ export default {
         res.status(500).json({error: error.message})
         next(error)
     }
+  },
+
+  googleAuth: async(req:Request, res:Response, next:NextFunction) => {
+    console.log(req.body);
+    
+    const response = await userInteractor.googleUser(req.body);
   }
 }
 

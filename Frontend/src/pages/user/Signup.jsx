@@ -2,14 +2,36 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { signupUser } from '../../features/auth/authSlice';  // Corrected path
+import { signupUser, GoogleAuth } from '../../features/auth/authSlice';  // Corrected path
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { auth, provider, signInWithPopup } from '../../firebase/firebase'; // Import Firebase functions
+
 
 function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
+
+  const handleGoogleSignup = async()=> {
+    try {
+      const result = await signInWithPopup(auth , provider)
+      const user = result.user;
+      console.log('Google user',user);
+
+      dispatch(GoogleAuth({ email: user.email, name: user.displayName })).then((response) => {
+        if (response.meta.requestStatus === 'fulfilled') {
+          toast.success('User signed up with Google');
+          navigate('/home');
+        } else {
+          toast.error('Google signup failed');
+        }
+      });
+    } catch (error) {
+      console.error('Error during Google signup:', error);
+      toast.error('Google signup failed');      
+    }
+  }
 
 
   // useEffect(() => {
@@ -128,6 +150,7 @@ function Signup() {
                     <div className="px-6 sm:px-0 max-w-sm">
                       <button
                         type="button"
+                        onClick={handleGoogleSignup}
                         className="text-white w-full bg-[#4285F4] hover:bg-[#4285F4]/90 focus:ring-4 focus:outline-none focus:ring-[#4285F4]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center justify-center mb-2"
                       >
                         <svg className="mr-2 -ml-1 w-4 h-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">

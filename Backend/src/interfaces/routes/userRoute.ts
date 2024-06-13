@@ -5,7 +5,8 @@ const userRouter = Router();
 
 userRouter.post('/signup', userController.userRegistration);
 userRouter.post('/otp-verification', userController.verifyOTP);
-userRouter.post('/login',userController.userLogin)
+userRouter.post('/login',userController.userLogin);
+userRouter.post('/googleAuth',userController.googleAuth);
 
 // userRouter.post('/otp-verification', verifyOTP );
 
