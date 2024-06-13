@@ -1,0 +1,34 @@
+Clean Architecture:
+
+backend
+├── src
+│   ├── server.ts
+│   ├── application
+│   │   └── use-cases
+│   │       ├── CreateUserUseCase.ts
+│   │       └── SendOTPUseCase.ts
+│   ├── domain
+│   │   ├── entities
+│   │   │   └── User.ts
+│   │   ├── repositories
+│   │   │   └── UserRepository.ts
+│   ├── infrastructure
+│   │   ├── config
+│   │   │   └── db.ts
+│   │   ├── data
+│   │   │   └── UserModel.ts
+│   │   ├── repositories
+│   │   │   └── MongoUserRepository.ts
+│   ├── interfaces
+│   │   ├── controllers
+│   │   │   └── UserController.ts
+│   │   ├── routes
+│   │   │   └── userRoutes.ts
+│   ├── utils
+│       └── emailUtils.ts
+│       └── otpUtils.ts
+
+
+
+
+impo
