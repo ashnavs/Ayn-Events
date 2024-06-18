@@ -5,4 +5,5 @@ export interface IUser {
     favorites?: string[];
     is_verified?: boolean;
     is_google?: boolean;
+    is_blocked?:boolean
 }

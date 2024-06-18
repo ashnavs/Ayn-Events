@@ -6,6 +6,7 @@ export interface Iuser extends Document {
   password?: string;
   favorites?: string[];
   is_verified?: boolean;
+  is_blocked?:boolean
 }
 
 const UserSchema: Schema = new Schema({
@@ -14,7 +15,8 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   favorites: { type: [String], default: [] },
   is_verified: { type: Boolean, default:false },
-  is_google: { type: Boolean, default:false }
+  is_google: { type: Boolean, default:false },
+  is_blocked: { type: Boolean, default:false }
 
 
 });

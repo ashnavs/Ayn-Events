@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './infrastructure/config/db';
 import userRoutes from './interfaces/routes/userRoute';
+import adminRoutes from './interfaces/routes/adminRoute';
 
 dotenv.config();
 connectDB();
@@ -46,6 +47,7 @@ app.use(session({
 
 // Use user routes
 app.use( '/api/users',userRoutes);
+app.use('/api/admin' , adminRoutes)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

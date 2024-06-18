@@ -1,6 +1,7 @@
 import  { Iuser, Users } from "../database/dbmodel/userModel";
 import { IUser } from "../../domain/entities/types/userType";
 import OTPModel from "../database/dbmodel/otpModel";
+import { Encrypt } from "../../domain/helper/hashPassword";
 
 export const getUserbyEMail = async (email:string)=> {
     return await Users.findOne({email:email})
@@ -63,4 +64,30 @@ export const saveOtp = async (email: string, otp: string, generatedAt: number) =
 
   };
 
-  export const getStoredOTP = async( email: string )=> await OTPModel.findOne({email:email});
+export const getStoredOTP = async( email: string )=> await OTPModel.findOne({email:email});
+
+
+export const googleUser = async (userData:IUser) =>{
+
+    if(!userData.email || !userData.name){
+        throw new Error('Data undefined')
+    }
+
+    const existingUser = await checkExistingUser(userData.email,userData.name);
+    if(existingUser){
+        return existingUser;
+    }
+
+    const generatepass = Math.random().toString(36).slice(-8)
+    const hashedPassword = await Encrypt.cryptPassword(generatepass);
+
+    const newUser = new Users({
+        name:userData.name,
+        email:userData.email,
+        password:hashedPassword,
+        is_google:true
+    })
+
+    return await newUser.save();
+
+}

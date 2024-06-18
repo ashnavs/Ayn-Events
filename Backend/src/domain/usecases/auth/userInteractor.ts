@@ -1,5 +1,5 @@
 import { Iuser } from "../../../infrastructure/database/dbmodel/userModel";
-import { createUser , saveOtp,verifyUserDb, getUserbyEMail} from "../../../infrastructure/repositories/mongoUserRepository";
+import { createUser , saveOtp,verifyUserDb, getUserbyEMail, googleUser } from "../../../infrastructure/repositories/mongoUserRepository";
 import { Encrypt } from '../../helper/hashPassword'
 import { IUser } from "../../entities/types/userType";
 import { Request } from "express";
@@ -74,9 +74,9 @@ export default {
         if (!isValid) {
             throw new Error("Invalid password");
         }
-        // if(existingUser && existingUser.isBlocked){
-        //     throw new Error('Account is Blocked');
-        // }
+        if(existingUser && existingUser.is_blocked){
+            throw new Error('Account is Blocked');
+        }
 
         const token = await generateToken(existingUser.id , email)
         const user = {
@@ -87,14 +87,32 @@ export default {
         return {token,user}
     },
 
-    googleUser:async(email:string) => {
-        const existingUser = await getUserbyEMail(email);
+    googleUser:async(userData:IUser) => {
+        try {
+            const savedUser = await  googleUser(userData)
+        if(savedUser){
+            const user = {
+                id: savedUser._id,
+                name:savedUser.name,
+                email:savedUser.email
+            }
 
-        if(!existingUser || !existingUser.password){
-            throw new Error('User not found');
+            if (!savedUser._id || !savedUser.email) {
+                throw new Error("User ID or email is undefined");
+            }
+
+            let token = generateToken(savedUser.id,savedUser.email)
+            return {user,token}
+        }
+        } catch (error:any) {
+            console.error(error.message)
+            throw error
         }
 
-    }
+        
+
+    },
+    
 
 
 }
