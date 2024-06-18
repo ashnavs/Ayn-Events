@@ -34,8 +34,24 @@ export const loginUser = createAsyncThunk(
   async(userData, {rejectWithValue}) => {
     try {
       const response = await authService.login(userData)
+      // if(userData.is_blocked === true){
+      //   throw new Error('Account is blocked')
+      // }
       console.log('sliceee');
       return response.data;
+    } catch (error) {
+      console.log("mnmnnmnmnmnm",error);
+      return rejectWithValue(error.response ? error.response.data : error.message)
+    }
+  }
+)
+
+export const loginAdmin = createAsyncThunk(
+  'auth/loginAdmin',
+  async(adminData, {rejectWithValue}) => {
+    try {
+      const response = await authService.adminLogin(adminData)
+      return response.data
     } catch (error) {
       return rejectWithValue(error.response.data)
     }
@@ -49,7 +65,11 @@ const authSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearError(state) {
+      state.error = null; // Resets the error state to null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(signupUser.pending, (state) => {
@@ -70,11 +90,12 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        state.user = action.payload.user; // Assuming your response structure includes a user object
       })
       .addCase(loginUser.rejected, (state, action) => {
+        console.log("slice login eeree",action);
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload ? action.payload.message : 'Login failed';
       })
       .addCase(GoogleAuth.pending, (state) => {
         state.loading = true;
@@ -88,7 +109,21 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(loginAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(loginAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
   },
 });
+
+export const { clearError } = authSlice.actions;
 
 export default authSlice.reducer;

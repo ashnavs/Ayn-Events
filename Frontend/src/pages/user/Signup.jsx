@@ -69,7 +69,7 @@ function Signup() {
                   if (response.meta.requestStatus === 'fulfilled') {
                     toast.success("user singup success")
                     navigate(`/otp-verification/${values.email}`);
-                  };
+                  }
                   setSubmitting(false);
                 });
               }}
