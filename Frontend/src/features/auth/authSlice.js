@@ -1,8 +1,7 @@
-
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import authService from './authService';
+import Cookies from 'js-cookie'
 
 export const signupUser = createAsyncThunk(
   'auth/signupUser',
@@ -34,27 +33,26 @@ export const loginUser = createAsyncThunk(
   async(userData, {rejectWithValue}) => {
     try {
       const response = await authService.login(userData)
+      console.log("Login Slice response", response);
+      Cookies.set('token',response.data.response.token)
       // if(userData.is_blocked === true){
       //   throw new Error('Account is blocked')
       // }
-      console.log('sliceee');
       return response.data;
     } catch (error) {
-      console.log("mnmnnmnmnmnm",error);
+      console.log("Login slice error",error);
       return rejectWithValue(error.response ? error.response.data : error.message)
     }
   }
 )
 
-export const loginAdmin = createAsyncThunk(
-  'auth/loginAdmin',
-  async(adminData, {rejectWithValue}) => {
-    try {
-      const response = await authService.adminLogin(adminData)
-      return response.data
-    } catch (error) {
-      return rejectWithValue(error.response.data)
-    }
+
+
+export const clearUser = createAsyncThunk(
+  'auth/clearUser',
+  async(_,{dispatch}) => {
+    dispatch(logoutUser());
+    Cookies.remove('token')
   }
 )
 
@@ -66,31 +64,37 @@ const authSlice = createSlice({
     error: null,
   },
   reducers: {
+    logoutUser(state) {
+      state.user = null;
+      state.loading = false,
+      state.error = null
+    },
     clearError(state) {
       state.error = null; // Resets the error state to null
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(signupUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(signupUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload; // Ensure this sets the user with email
-      })
-      .addCase(signupUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      // .addCase(signupUser.pending, (state) => {
+      //   state.loading = true;
+      //   state.error = null;
+      // })
+      // .addCase(signupUser.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.user = action.payload; // Ensure this sets the user with email
+      // })
+      // .addCase(signupUser.rejected, (state, action) => {
+      //   state.loading = false;
+      //   state.error = action.payload;
+      // })
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user; // Assuming your response structure includes a user object
+        console.log("slice login",action);
+        state.user = action.payload.response.user; 
       })
       .addCase(loginUser.rejected, (state, action) => {
         console.log("slice login eeree",action);
@@ -109,21 +113,10 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(loginAdmin.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginAdmin.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(loginAdmin.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+
   },
 });
 
-export const { clearError } = authSlice.actions;
-
+export const { clearError, logoutUser } = authSlice.actions;
+export const selectUser = (state) => state.user
 export default authSlice.reducer;

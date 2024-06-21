@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { loginAdmin } from '../../features/auth/authSlice';
+import { loginAdmin } from '../../features/admin/adminslice';
 import { toast,Toaster } from 'sonner';
 
 
@@ -30,7 +30,7 @@ const AdminLogin = () => {
                 initialValues={{ email: '', password: '' }}
                 validationSchema={validationSchema}
                 onSubmit={(values, { setSubmitting }) => {
-                    console.log('Form submitted:', values); // Debug log for form submission
+                    console.log('Form submitted:', values);
                     dispatch(loginAdmin(values)).then((response) => {
                       if (response.meta.requestStatus === "fulfilled") {
                         toast.success('Admin login success');

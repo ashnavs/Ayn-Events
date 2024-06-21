@@ -1,5 +1,5 @@
 import { Iuser } from "../../../infrastructure/database/dbmodel/userModel";
-import { createUser , saveOtp,verifyUserDb, getUserbyEMail, googleUser } from "../../../infrastructure/repositories/mongoUserRepository";
+import { createUser , saveOtp,verifyUserDb, getUserbyEMail, googleUser, checkExistingUser } from "../../../infrastructure/repositories/mongoUserRepository";
 import { Encrypt } from '../../helper/hashPassword'
 import { IUser } from "../../entities/types/userType";
 import { Request } from "express";
@@ -15,7 +15,12 @@ export default {
         
         try {
             if (!userData.email || !userData.name) {
-                throw new Error("erroror")
+                throw new Error("user data undefined")
+            }
+            
+            const existingUser = await checkExistingUser(userData.email,userData.name);
+            if(existingUser && existingUser.is_verified == true){
+                throw new Error('User already exist')
             }
             const otp = await generateOTP();
             console.log("otpppppppp",otp);
@@ -36,6 +41,34 @@ export default {
         }
     },
 
+    // verifyUser: async( data:{ otp:string, email:string }) => {
+    //     console.log("body ",data);
+        
+
+    //     if (!data.otp ) {
+    //         throw new Error("no otp")
+    //     }
+    //     const storedOTP = await getStoredOTP(data.email);
+    //     console.log("1111111111111",storedOTP);
+        
+    //     if(!storedOTP || storedOTP.otp !== data.otp){
+    //         console.log('invalid otp');
+    //         throw new Error('Invalid Otp')
+            
+    //     }
+    //     const otpGeneratedAt  = storedOTP.generatedAt
+        
+
+    //     const currentTime = Date.now()
+    //     const otpAge = currentTime - otpGeneratedAt.getTime();
+    //     const expireOTP = 1 * 60 * 1000
+    //     if(otpAge>expireOTP){
+    //         throw new Error('OTP Expired')
+    //     }
+
+    //     return await verifyUserDb(data.email)
+
+    // },
     verifyUser: async( data:{ otp:string, email:string }) => {
         console.log("body ",data);
         
@@ -76,6 +109,9 @@ export default {
         }
         if(existingUser && existingUser.is_blocked){
             throw new Error('Account is Blocked');
+        }
+        if(existingUser.is_verified == false){
+            throw new Error(`User is not verified.Register!`)
         }
 
         const token = await generateToken(existingUser.id , email)

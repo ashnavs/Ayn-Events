@@ -1,38 +1,24 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter as Router , Route, Routes } from 'react-router-dom';
-import Signup from './pages/user/Signup';
-import LangingPage from './pages/user/LangingPage';
-import UserOtp from './pages/user/UserOtp';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import LoginPage from './pages/user/LoginPage';
-import UserHomePage from './pages/user/UserHomePage';
 import './GlobalStyles.scss'
-import AdminLogin from './pages/admin/AdminLogin';
-import Dashboard from './pages/admin/Dashboard';
-import UserList from './pages/admin/UserList';
+import './index.css'
+import UserRoutes from './Routes/UserRoutes';
+
 
 function App() {
   return (
     
-    <Router>  
       <Routes>
-        <Route path='/' element={<LangingPage/>}/>
-        <Route path='/signup' element={<Signup/>}/>
-        <Route path='/otp-verification/:email' element={<UserOtp/>}/>
-        <Route path='/login' element={<LoginPage/>}/>
-        <Route path='/home' element={<UserHomePage/>}/>
-
-       { /* adminroutes */}
-
-        <Route path='/admin/login' element={<AdminLogin/>}/>
-        <Route path='/admin/dashboard' element={<Dashboard/>}/>
-        <Route path='/admin/userlist' element={<UserList/>}/>
-
-
+        <Route path='/*' element={<UserRoutes/>} />
+        {/* <Route path='/admin' element={<adminRoutes />} /> */}
       </Routes>
-    </Router>
-  )
+      // <Toaster position="top-right" />
+   
+  );
 }
 
 export default App;
+App.jsx
+

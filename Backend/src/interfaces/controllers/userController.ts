@@ -8,16 +8,16 @@ import sendOTPEmail from '../../utils/emailUtils'
 export default {
   userRegistration: async (req: Request, res: Response, next: NextFunction) => {
     try {
-
-
       const user = await userInteractor.registerUser(req.body);
-
-      console.log(user);
       res.status(200).json({ message: "registration success", user });
 
     } catch (error: any) {
       console.log(error);
-      res.status(500).json(error);
+      if (error.message === 'User already exist') {
+        res.status(409).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
   },
 
@@ -46,41 +46,21 @@ export default {
       const { email, password } = req.body
 
       const response = await userInteractor.loginUser(email, password);
-      console.log(response);
+      console.log("response login",response);
       res.status(200).json({ message: 'Login success', response })
     } catch (error: any) {
       console.error("Controller error:", error.message);
-    res.status(500).json({ message: error.message });
+      if(error.message === 'User is not verified'){
+        res.status(403).json({ message: 'User is not verified' });
+      }else
+   { res.status(500).json({ message: error.message })}
     // next(error);
     }
   },
 
-  // userLogin: async (req: Request, res: Response, next: NextFunction) => {
-  //   try {
-  //     const { email, password } = req.body;
-  //     const response = await userInteractor.loginUser(email, password);
-  //     console.log("response ",response);
-      
-  //     res.status(200).json({ message: 'Login success', response });
-  //   } catch (error: any) {
-  //     console.error("Controller error:", error.message);
-  
-  //     // Set status code based on error message
-  //     let statusCode = 500;
-  //     if (error.message === 'User not found' || error.message === 'Invalid password') {
-  //       statusCode = 401; // Unauthorized
-  //     } else if (error.message === 'Account is Blocked') {
-  //       statusCode = 403; // Forbidden
-  //     }
-  //     console.log('error',error.message);
-      
-  //     res.status(statusCode).json({ message: error.message });
 
-  //     // next(error);
-  //   }
-  // },
 
-  googleAuth: async (req: Request, res: Response, next: NextFunction) => {
+  googleAuth: async (req: Request, res: Response) => {
     console.log(req.body);
     try {
       const response = await userInteractor.googleUser(req.body);
@@ -92,7 +72,15 @@ export default {
 
 
 
-  }
+  },
+
+  // userLogout:async(req:Request,res:Response) => {
+  //   try {
+  //     const response = await userInteractor.logoutUser
+  //   } catch (error) {
+      
+  //   }
+  // }
 }
 
 declare module 'express-session' {

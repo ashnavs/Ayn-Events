@@ -45,6 +45,7 @@ function LoginPage() {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await dispatch(loginUser(values)).unwrap();
+      console.log(response)
       toast.success('User login success');
       navigate('/home');
     } catch (error) {

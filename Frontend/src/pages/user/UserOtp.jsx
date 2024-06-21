@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -8,10 +8,16 @@ const UserOtp = () => {
   const { email } = useParams();
   const navigate = useNavigate();
   const submitRef = useRef(null);
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const otp = inputRefs.current.map(input => input.value).join('');
+    const { email } = location.state || {};
+
+    if (!email) {
+      return <div>Error: Email not provided</div>;
+    }
     
     try {
       const response = await axios.post('http://localhost:5000/api/users/otp-verification', { otp, email });

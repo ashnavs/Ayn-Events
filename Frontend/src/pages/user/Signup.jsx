@@ -33,6 +33,20 @@ function Signup() {
     }
   }
 
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try { 
+      const response = await dispatch(signupUser(values)).unwrap();
+      toast.success("User signup success");
+      navigate('/otp-verification', {state:{email:values.email}});
+    } catch (error) {
+      
+        toast.error("User already exists");
+     
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
 
   // useEffect(() => {
   //   if (user) {
@@ -64,15 +78,7 @@ function Signup() {
                 confirmPassword: '',
               }}
               validationSchema={validationSchema}
-              onSubmit={(values, { setSubmitting }) => {
-                dispatch(signupUser(values)).then((response) => {
-                  if (response.meta.requestStatus === 'fulfilled') {
-                    toast.success("user singup success")
-                    navigate(`/otp-verification/${values.email}`);
-                  }
-                  setSubmitting(false);
-                });
-              }}
+              onSubmit={handleSubmit}
             >
               {({ errors, touched }) => (
                 <Form className="space-y-4 md:space-y-4">
@@ -127,11 +133,6 @@ function Signup() {
                       className={`bg-gray-50 border ${errors.confirmPassword && touched.confirmPassword ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                     />
                     <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <a href="#" className="text-center text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
-                      Forgot password?
-                    </a>
                   </div>
                   <button
                     type="submit"

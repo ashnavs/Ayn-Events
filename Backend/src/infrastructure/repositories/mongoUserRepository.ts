@@ -8,7 +8,7 @@ export const getUserbyEMail = async (email:string)=> {
 }
 
 export const checkExistingUser = async(email:string, name:string) => {
-    const existingUser = await Users.findOne({ $or: [{email:email},{name:name}]})
+    const existingUser = await Users.findOne({ $and: [{email:email},{name:name}]})
     return existingUser
 }
 
@@ -64,10 +64,10 @@ export const saveOtp = async (email: string, otp: string, generatedAt: number) =
 
   };
 
-export const getStoredOTP = async( email: string )=> await OTPModel.findOne({email:email});
+export const getStoredOTP = async( email: string ) => await OTPModel.findOne({email:email}).sort({ createdAt: -1 }).limit(1);
 
 
-export const googleUser = async (userData:IUser) =>{
+export const googleUser = async (userData:IUser) => {
 
     if(!userData.email || !userData.name){
         throw new Error('Data undefined')
