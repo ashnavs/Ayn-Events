@@ -6,10 +6,6 @@ dotenv.config();
 
 const sendOTPEmail = async (email: string , otp:string, name:string) => {
   try {
-    // const sessionData = req.session;
-    // const otp = sessionData.otp; 
-    // console.log(otp+" node mailer "+email);
-    // sessionData.otpGeneratedAt = Date.now();
 
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',

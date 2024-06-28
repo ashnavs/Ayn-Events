@@ -23,7 +23,7 @@ export default {
 
 
 
-  verifyOTP: async (req: Request, res: Response, next: NextFunction) => {
+  verifyOTP: async (req: Request, res: Response) => {
     console.log("boodddghyghsd", req.body);
 
     try {
@@ -33,7 +33,7 @@ export default {
     } catch (error: any) {
       console.error(error.message)
       res.status(500).json({ error: error.message })
-      next(error)
+    
     }
 
 
@@ -74,20 +74,38 @@ export default {
 
   },
 
-  // userLogout:async(req:Request,res:Response) => {
-  //   try {
-  //     const response = await userInteractor.logoutUser
-  //   } catch (error) {
+
+  getStatus: async (req: Request, res: Response) => {
+
+    try {
+      const id = req.query.id as string
+      console.log(id)
+      const response = await userInteractor.getStatus(id);
+      res.status(200).json({response})
+    } catch (error: any) {
       
-  //   }
-  // }
-}
+      console.log(error);
+      res.status(500).json(error)
+    }
 
-declare module 'express-session' {
-  interface SessionData {
 
-    otp?: string;
-    otpGeneratedAt?: number;
-    email: string;
+
+  },
+  resendOTP:async(req:Request, res:Response) => {
+    try {
+
+      const {email} = req.body
+     
+      const response = await userInteractor.otpResend(email)
+      res.status(200).json({response})
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  checkAuth:async(req:Request, res:Response)=>{
+    console.log("Hellooooo");
+    
   }
 }
+
+

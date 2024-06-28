@@ -49,7 +49,12 @@ function LoginPage() {
       toast.success('User login success');
       navigate('/home');
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = 
+        error.error?.message || 
+        error.message || 
+        error.data?.message || 
+        'Login failed';
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -76,9 +81,6 @@ function LoginPage() {
               {({ errors, touched, isSubmitting }) => (
                 <Form className="space-y-4 md:space-y-6">
                   <div>
-                    <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                      Your email
-                    </label>
                     <Field
                       type="email"
                       name="email"
@@ -91,9 +93,6 @@ function LoginPage() {
                     <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
                   <div>
-                    <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                      Password
-                    </label>
                     <Field
                       type="password"
                       name="password"

@@ -32,6 +32,8 @@ const AdminLogin = () => {
                 onSubmit={(values, { setSubmitting }) => {
                     console.log('Form submitted:', values);
                     dispatch(loginAdmin(values)).then((response) => {
+
+                      console.log(response,'response/');
                       if (response.meta.requestStatus === "fulfilled") {
                         toast.success('Admin login success');
                         navigate('/admin/dashboard');

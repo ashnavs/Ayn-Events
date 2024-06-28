@@ -1,50 +1,38 @@
 import React from 'react';
-import { clearUser } from '../features/auth/authSlice';
+import { clearUser,checkAuth } from '../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { FaUser } from 'react-icons/fa';
+const Header = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-function Header() {
-    
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const handleLogout =()=>{
-        dispatch(clearUser())
-        navigate('/login')
-    }
-    return (
-        <div>
-             <nav className="bg-[#a7a379ab] dark:bg-gray-700">
-            <div className="max-w-screen-xl px-4 py-3 mx-auto flex justify-between items-center">
-                {/* Logo on the left */}
-                <div className="flex items-center">
-                    <a href="/home" className="flex items-center space-x-3 rtl:space-x-reverse">
-                        
-                        {/* <img src="/src/assets/logo_white1.png" className="h-12 " alt="Your Logo" /> */}
-                        <span className="self-center text-4xl whitespace-nowrap dark:text-white font-light text-[#FFFF] max-w-full inline-block">AYN EVENTS</span>
-                    </a>
-                </div>
+  const handleLogout = () => {
+    dispatch(clearUser());
+    navigate('/login');
+  };
 
-                {/* Menu items on the right */}
-                <div className="flex items-center">
-                    <ul className="flex flex-row font-medium mt-0 space-x-8 rtl:space-x-reverse text-sm" id='nav'>
-                        <li>
-                            <a href="#" className="text-[#FFFF] dark:text-white hover:underline" aria-current="page">HOME</a>
-                        </li>
-                        <li>
-                            <a href="#" className="text-[#FFFF] dark:text-white hover:underline">VENDORS</a>
-                        </li>
-                        <li>
-                            <a onClick={handleLogout} className="text-[#FFFF] dark:text-white hover:underline">LOGOUT</a>
-                          
+  const handleAuth = () => {
+    dispatch(checkAuth())
+  }
 
-                        </li>
-                        
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        </div>
-    );
-}
+  return (
+    <header className="bg-[#c7c3a2] p-4 flex justify-between items-center">
+      <div className="flex items-center space-x-2">
+        <a href="/home" className="flex items-center space-x-3">
+          <span className="text-white text-4xl font-light">AYN EVENTS</span>
+        </a>
+      </div>
+      <nav className="flex space-x-8 text-sm">
+        <a href="#" className="text-white hover:underline">Home</a>
+        <a href="#" className="text-white hover:underline">Vendors</a>
+        <a onClick={handleLogout} className="text-white hover:underline cursor-pointer">Logout</a>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color:'white' }}>
+      <FaUser size={18} />
+    </button>
+      </nav>
+    </header>
+  );
+};
 
 export default Header;

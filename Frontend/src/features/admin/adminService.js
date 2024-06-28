@@ -4,7 +4,8 @@ const API_URL = 'http://localhost:5000/api/admin';
 
 const adminLogin = async (credentials) => {
     try {
-      const response = await axios.post(`${API_URL_Admin}/login`, credentials);
+      const response = await axios.post(`${API_URL}/login`, credentials);
+      console.log(response.data)
       return response.data;
     } catch (error) {
       console.error('Error during login:', error);
@@ -23,4 +24,4 @@ const getUsers = async()=>{
     }
 }
 
-export default {getUsers}
+export default {getUsers,adminLogin}

@@ -17,7 +17,7 @@ function Sidebar() {
               <FaUsers className="w-5 h-5" />
               <span className="mx-4 font-medium">All Users</span>
             </a>
-            <a className="flex items-center px-4 py-2 mt-2 text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700" href="#">
+            <a className="flex items-center px-4 py-2 mt-2 text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700" href="/admin/vendorlist">
               <FaStore className="w-5 h-5" />
               <span className="mx-4 font-medium">Vendors</span>
             </a>

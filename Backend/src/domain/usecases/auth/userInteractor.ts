@@ -1,8 +1,7 @@
-import { Iuser } from "../../../infrastructure/database/dbmodel/userModel";
-import { createUser , saveOtp,verifyUserDb, getUserbyEMail, googleUser, checkExistingUser } from "../../../infrastructure/repositories/mongoUserRepository";
+import { Iuser, Users } from "../../../infrastructure/database/dbmodel/userModel";
+import { createUser , saveOtp,verifyUserDb, getUserbyEMail, googleUser, checkExistingUser, getStatus } from "../../../infrastructure/repositories/mongoUserRepository";
 import { Encrypt } from '../../helper/hashPassword'
 import { IUser } from "../../entities/types/userType";
-import { Request } from "express";
 import { generateOTP } from "../../../utils/otpUtils";
 import sendOTPEmail from "../../../utils/emailUtils";
 import { getStoredOTP } from "../../../infrastructure/repositories/mongoUserRepository";
@@ -40,35 +39,6 @@ export default {
             throw error
         }
     },
-
-    // verifyUser: async( data:{ otp:string, email:string }) => {
-    //     console.log("body ",data);
-        
-
-    //     if (!data.otp ) {
-    //         throw new Error("no otp")
-    //     }
-    //     const storedOTP = await getStoredOTP(data.email);
-    //     console.log("1111111111111",storedOTP);
-        
-    //     if(!storedOTP || storedOTP.otp !== data.otp){
-    //         console.log('invalid otp');
-    //         throw new Error('Invalid Otp')
-            
-    //     }
-    //     const otpGeneratedAt  = storedOTP.generatedAt
-        
-
-    //     const currentTime = Date.now()
-    //     const otpAge = currentTime - otpGeneratedAt.getTime();
-    //     const expireOTP = 1 * 60 * 1000
-    //     if(otpAge>expireOTP){
-    //         throw new Error('OTP Expired')
-    //     }
-
-    //     return await verifyUserDb(data.email)
-
-    // },
     verifyUser: async( data:{ otp:string, email:string }) => {
         console.log("body ",data);
         
@@ -144,10 +114,35 @@ export default {
             console.error(error.message)
             throw error
         }
-
-        
-
     },
+    getStatus:async(id:string) => {
+        try {
+           return await getStatus(id)
+            
+        } catch (error:any) {
+            console.error(error.message)
+            throw error
+        }
+    },
+    otpResend:async(email:string) => {
+        try {
+            const newotp = await generateOTP();
+            const generatedAt = Date.now();
+            const users = await getUserbyEMail(email)
+            if(users && users.name){
+                await sendOTPEmail(email, newotp, users.name)
+                console.log('newOtp:',newotp);
+                
+                await saveOtp(email,newotp,generatedAt)
+            }else{
+                throw new Error('Please signup again')
+            }
+            
+        } catch (error) {
+            throw new Error('Failed to resend otp')
+        }
+    },
+    
     
 
 

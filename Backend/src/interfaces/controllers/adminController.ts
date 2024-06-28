@@ -1,8 +1,6 @@
 import { NextFunction , Request , Response } from "express";
-import { findAdmin } from "../../infrastructure/repositories/mongoAdminRepository";
-import { NullExpression } from "mongoose";
 import adminInteractor from "../../domain/usecases/auth/adminInteractor";
-import { log } from "console";
+
 
 
 export default {
@@ -16,7 +14,8 @@ export default {
            const credentials = {
              email , password
            }
-
+           console.log(credentials);
+           
             const response = await adminInteractor.loginAdmin(credentials);
             console.log(response);
             res.status(200).json({ message: 'Login success', response })
@@ -30,34 +29,31 @@ export default {
         }
     },
 
-    getUsers: async (req: Request, res: Response, next: NextFunction) => {
+        getUsers: async (req: Request, res: Response): Promise<void> => {
         try {
-          const users = await adminInteractor.userList();
+          const { page = 1, limit = 10 } = req.query;
+          const users = await adminInteractor.getUsers(Number(page), Number(limit));
           res.status(200).json(users);
         } catch (error: any) {
           console.error(error.message);
           res.status(500).json({ error: error.message });
-          next(error);
         }
-    },
-
-    blockUser: async(req:Request , res:Response, next:NextFunction) => {
+      },
+      
+      blockUser: async (req: Request, res: Response): Promise<void> => {
         try {
-           const { userId , is_blocked } = req.body;
-           const updatedUser = await adminInteractor.updatedUserStatus(userId,is_blocked);
-           console.log(updatedUser);
-           
-           res.status(200).json(updatedUser)
-        } catch (error:any) {
-            console.error(error.message);
-            res.status(500).json({ error: error})
-            next(error)
+          const { userId } = req.params;
+          const { is_blocked } = req.body;
+          const updatedUser = await adminInteractor.updatedUserStatus(userId, is_blocked);
+          res.status(200).json(updatedUser);
+        } catch (error: any) {
+          console.error(error.message);
+          res.status(500).json({ error: error.message });
+       
         }
-    },
+    }
 
-    // usersCount: async(req:Request, res:Response, next:NextFunction) => {
-
-    // }
+  
 
 
 

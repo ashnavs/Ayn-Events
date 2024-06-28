@@ -7,3 +7,9 @@ export interface IUser {
     is_google?: boolean;
     is_blocked?:boolean
 }
+
+export interface PaginatedUsers {
+    users: IUser[];
+    totalPages: number;
+  }
+  

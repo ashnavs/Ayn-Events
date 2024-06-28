@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -9,6 +9,9 @@ const UserOtp = () => {
   const navigate = useNavigate();
   const submitRef = useRef(null);
   const location = useLocation();
+
+  const [timer, setTimer] = useState(60); // Initial timer set to 60 seconds
+  const [isResendEnabled, setIsResendEnabled] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,14 +30,41 @@ const UserOtp = () => {
     } catch (error) {
       console.error('Error response:', error);
       if (error.response && error.response.data) {
-        toast.error(`Error: ${error.response.data.error}`);
-        alert(error.response.data.message);
+        toast.error(`${error.response.data.error}`);
       } else {
         console.error('Error message:', error.message);
-        alert('An unexpected error occurred');
+       toast.error(error.message);
       }
     }
   };
+
+  const handleResend = async () => {
+    const { email } = location.state || {};
+    console.log('Resending OTP...');
+    try {
+      await axios.post('http://localhost:5000/api/users/resend-otp', { email });
+      toast.success('OTP resent successfully');
+      setTimer(60); 
+      setIsResendEnabled(false);
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+      toast.error('Failed to resend OTP');
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer(prevTimer => {
+        if (prevTimer === 1) {
+          clearInterval(interval);
+          setIsResendEnabled(true); 
+          return 0;
+        }
+        return prevTimer - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -132,9 +162,13 @@ const UserOtp = () => {
         </form>
         <div className="text-sm text-slate-500 mt-4">
           Didn't receive code?{' '}
-          <a className="font-medium text-[#A39F74] hover:text-[#8e8852]" href="#0">
-            Resend
-          </a>
+          <button
+            onClick={handleResend}
+            disabled={!isResendEnabled}
+            className={`font-medium ${isResendEnabled ? 'text-[#A39F74] hover:text-[#8e8852]' : 'text-gray-400 cursor-not-allowed'}`}
+          >
+            Resend {timer > 0 && `(${timer}s)`}
+          </button>
         </div>
       </div>
     </div>

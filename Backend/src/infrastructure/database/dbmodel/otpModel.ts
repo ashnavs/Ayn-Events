@@ -4,6 +4,7 @@ export interface OTPDocument extends Document {
   otp: string;
   email: string;
   generatedAt: Date;
+
 }
 
 const otpSchema = new Schema<OTPDocument>(
@@ -19,8 +20,9 @@ const otpSchema = new Schema<OTPDocument>(
     generatedAt: {
       type: Date,
       default: Date.now,
-      expires: 300 // Expire documents after 5 minutes (300 seconds)
-    }
+      expires: 300 
+    },
+  
   },
   { timestamps: true }
 );

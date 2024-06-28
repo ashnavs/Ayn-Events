@@ -1,11 +1,11 @@
-
-import LandingPage from '../pages/user/LandingPage';
-import Signup from '../pages/user/Signup';
-import UserOtp from '../pages/user/UserOtp';
-import LoginPage from '../pages/user/LoginPage';
-import UserHomePage from '../pages/user/UserHomePage';
-import UserPrivateRoutes from '../authComponents/UserPrivateRoutes';
+import LandingPage from '../../pages/user/landingpage/LandingPage'
+import Signup from '../../pages/user/Signup'
+import UserOtp from '../../pages/user/UserOtp'
+import LoginPage from '../../pages/user/LoginPage'
+import UserHomePage from '../../pages/user/UserHomePage'
+import UserPrivateRoutes from './UserPrivateRoutes';
 import { Route, Routes } from 'react-router'
+
 
 
 

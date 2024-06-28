@@ -1,16 +1,25 @@
-import React from 'react'
+// src/components/Footer.js
+import React from 'react';
 
-function Footer() {
-    return (
-        <footer className="py-12 bg-[#C9A48E] text-center">
-          <div className="max-w-2xl mx-auto text-lg">
-            <p>We help create and capture unforgettable memories on your special day by incorporating beautiful, modern, and detailed design. Let our team help you transform your dream celebration into a reality.</p>
-          </div>
-          <div className="mt-8">
-            <img src="" alt="Footer" className="w-full h-auto rounded-lg" />
-          </div>
-        </footer>
-      );
-}
+const Footer = () => {
+  return (
+    <footer className="bg-[#C09783] text-black py-4 p-8 h-2/3">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="text-sm">
+          COPYRIGHT © 2023 AYN EVENTS
+        </div>
+        <div className="text-lg font-serif">
+          <span className="px-4 py-2 border rounded-full">
+            {/* Replace with actual logo */}
+            <span className="text-2xl">Fx</span>
+          </span>
+        </div>
+        <div className="text-sm">
+          MADE BY ASHNA
+        </div>
+      </div>
+    </footer>
+  );
+};
 
-export default Footer
+export default Footer;

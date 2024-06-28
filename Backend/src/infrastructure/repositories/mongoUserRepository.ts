@@ -3,6 +3,7 @@ import { IUser } from "../../domain/entities/types/userType";
 import OTPModel from "../database/dbmodel/otpModel";
 import { Encrypt } from "../../domain/helper/hashPassword";
 
+
 export const getUserbyEMail = async (email:string)=> {
     return await Users.findOne({email:email})
 }
@@ -90,4 +91,10 @@ export const googleUser = async (userData:IUser) => {
 
     return await newUser.save();
 
+}
+
+export const getStatus = async (id:string)=>{
+ const user = await Users.findOne({_id:id})
+ console.log(user)
+ return user
 }

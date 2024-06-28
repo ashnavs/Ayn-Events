@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axiosInstanceUser from '../../services/axiosInstanceUser';
 import axios from 'axios';
 import authService from './authService';
 import Cookies from 'js-cookie'
@@ -55,6 +56,18 @@ export const clearUser = createAsyncThunk(
     Cookies.remove('token')
   }
 )
+
+export const checkAuth = createAsyncThunk(
+  'auth/checkAuth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstanceUser.post('/checkAuth');
+      return response.data; 
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: 'auth',
