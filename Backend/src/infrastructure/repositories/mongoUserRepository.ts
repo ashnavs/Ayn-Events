@@ -2,6 +2,7 @@ import  { Iuser, Users } from "../database/dbmodel/userModel";
 import { IUser } from "../../domain/entities/types/userType";
 import OTPModel from "../database/dbmodel/otpModel";
 import { Encrypt } from "../../domain/helper/hashPassword";
+import { Vendor } from "../database/dbmodel/vendorModel";
 
 
 export const getUserbyEMail = async (email:string)=> {
@@ -98,3 +99,4 @@ export const getStatus = async (id:string)=>{
  console.log(user)
  return user
 }
+

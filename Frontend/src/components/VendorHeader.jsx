@@ -1,13 +1,30 @@
 // src/components/Header.jsx
 import React from 'react';
-import { FiBell, FiMessageSquare } from 'react-icons/fi';
+import { FiBell, FiLogOut, FiMessageSquare } from 'react-icons/fi';
+import { useDispatch } from 'react-redux';
+import axiosInstanceVendor from '../services/axiosInstanceVenndor';
+import { clearVendor } from '../features/vendor/vendorSlice';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+
+
 
 const VendorHeader = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  
+
+  const logOut = () => {
+    clearVendor()
+    Cookies.remove('tokenvendor');
+    navigate('/vendor/login')
+  }
   return (
     <header className="bg-[#CBC8AF] h-16 flex justify-between items-center px-4">
       <div className="flex items-center">
         <span className="text-white font-serif text-4xl font-thin">
-          AYN <span className="font-sans text-xs">EVENTS</span>
+          AYN EVENTS<span className="font-sans text-xs"></span>
         </span>
       </div>
       <nav className="flex items-center">
@@ -22,6 +39,10 @@ const VendorHeader = () => {
         </div>
         <button className="focus:outline-none">
           <FiMessageSquare className="h-6 w-6 text-white" />
+        </button>
+      
+        <button onClick={logOut} className="focus:outline-none px-2">
+          <FiLogOut className="h-6 w-6 text-white" />
         </button>
       </nav>
     </header>

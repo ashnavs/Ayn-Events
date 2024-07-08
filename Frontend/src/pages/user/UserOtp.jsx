@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useSelector } from 'react-redux';
 
 const UserOtp = () => {
   const inputRefs = useRef([]);
@@ -9,6 +10,16 @@ const UserOtp = () => {
   const navigate = useNavigate();
   const submitRef = useRef(null);
   const location = useLocation();
+  const {user} = useSelector((state)=>state.auth)
+  console.log(user);
+
+
+  useEffect(()=>{
+    if(user){
+      navigate('/home')
+    }
+  })
+ 
 
   const [timer, setTimer] = useState(60); // Initial timer set to 60 seconds
   const [isResendEnabled, setIsResendEnabled] = useState(false);

@@ -6,6 +6,8 @@ import App from './App';
 import { Toaster } from 'sonner';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './app/store';
+import Modal from 'react-modal';
+Modal.setAppElement('#root');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

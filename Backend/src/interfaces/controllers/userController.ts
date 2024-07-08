@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express"
 import userInteractor from "../../domain/usecases/auth/userInteractor";
 import { generateOTP } from '../../utils/otpUtils'
 import sendOTPEmail from '../../utils/emailUtils'
+import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
+import { getServices } from "../../infrastructure/repositories/mongoAdminRepository";
 
 
 
@@ -105,6 +107,29 @@ export default {
   checkAuth:async(req:Request, res:Response)=>{
     console.log("Hellooooo");
     
+  },
+  getVendor:async(req:Request,res:Response) => {
+   try {
+     const response = await getAllVendors()
+     console.log(response,"getvendorsverifi");
+     
+     res.status(200).json({response})
+ 
+   } catch (error) {
+    res.status(500).json(error)
+
+   }
+  },
+  getService:async(req:Request,res:Response) => {
+    try {
+      const response = await getServices()
+      console.log(response,"👌");
+      
+      res.status(200).json({response})
+
+    } catch (error) {
+      res.status(500).json(error)
+    }
   }
 }
 

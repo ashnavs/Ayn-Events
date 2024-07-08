@@ -14,7 +14,7 @@ export interface VendorDocument extends Document {
     //review here
     vendorType: string;
     is_verified: boolean;
-    verify_request: boolean;
+    is_blocked: boolean;
     total_bookings: number;
     otp_verified:boolean;
 
@@ -33,10 +33,10 @@ export interface VendorDocument extends Document {
     coverpicture: { type: String },
     about: { type: String },
     vendorType: { type: String },
-    is_verified: { type: Boolean},
-    verify_request: { type: Boolean },
+    is_verified: { type: Boolean , default:false},
+    is_blocked: { type: Boolean ,default:false},
     total_bookings: { type: Number },
-    otp_verified: {type:Boolean},
+    otp_verified: {type:Boolean, default:false},
   });
   
   export const Vendor = mongoose.model<VendorDocument>('Vendor', vendorSchema);

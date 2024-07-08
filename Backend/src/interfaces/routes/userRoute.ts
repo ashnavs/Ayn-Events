@@ -12,6 +12,10 @@ userRouter.post('/login',userController.userLogin);
 userRouter.post('/googleAuth',userController.googleAuth);
 userRouter.get('/getStatus',userController.getStatus);
 userRouter.post('/checkAuth',protectUser,userController.checkAuth);
+userRouter.get('/verifyvendor',userController.getVendor)
+userRouter.get('/category',userController.getService)
+
+
 
 
 export default userRouter;

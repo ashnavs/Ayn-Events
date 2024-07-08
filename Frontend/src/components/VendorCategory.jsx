@@ -1,22 +1,23 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import axiosInstanceUser from '../services/axiosInstanceUser';
 
 const VendorCategory = () => {
-  const categories = [
-    { name: 'Wedding', imageUrl: 'https://www.powerplayent.com/wp-content/uploads/2016/04/wedding-lighting.jpg', count: 12301 },
-    { name: 'Birthday', imageUrl: 'https://celestialevents.in/wp-content/uploads/2020/09/services-three.jpg', count: 59400 },
-    { name: 'Wedding', imageUrl: 'https://www.powerplayent.com/wp-content/uploads/2016/04/wedding-lighting.jpg', count: 12301 },
-    { name: 'Birthday', imageUrl: 'https://celestialevents.in/wp-content/uploads/2020/09/services-three.jpg', count: 59400 },
-    { name: 'Wedding', imageUrl: 'https://www.powerplayent.com/wp-content/uploads/2016/04/wedding-lighting.jpg', count: 12301 },
-    { name: 'Birthday', imageUrl: 'https://celestialevents.in/wp-content/uploads/2020/09/services-three.jpg', count: 59400 },
-    { name: 'Wedding', imageUrl: 'https://www.powerplayent.com/wp-content/uploads/2016/04/wedding-lighting.jpg', count: 12301 },
-    { name: 'Birthday', imageUrl: 'https://celestialevents.in/wp-content/uploads/2020/09/services-three.jpg', count: 59400 },
-    { name: 'Wedding', imageUrl: 'https://www.powerplayent.com/wp-content/uploads/2016/04/wedding-lighting.jpg', count: 12301 },
-    { name: 'Birthday', imageUrl: 'https://celestialevents.in/wp-content/uploads/2020/09/services-three.jpg', count: 59400 },
-    { name: 'Wedding', imageUrl: 'https://www.powerplayent.com/wp-content/uploads/2016/04/wedding-lighting.jpg', count: 12301 },
-    { name: 'Birthday', imageUrl: 'https://celestialevents.in/wp-content/uploads/2020/09/services-three.jpg', count: 59400 },
-    // Add more categories as needed
-  ];
+  const [categories, setCategories] = useState([]);
   const scrollContainer = useRef(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstanceUser.get('/category'); // Replace with your backend API URL
+        console.log(response.data.response, "👌"); // Log the response to ensure it's an array
+        setCategories(response.data.response); // Set the correct part of the response
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const scrollLeft = () => {
     scrollContainer.current.scrollBy({ left: -300, behavior: 'smooth' });
@@ -33,16 +34,20 @@ const VendorCategory = () => {
         <button onClick={scrollLeft} className="absolute left-0 ml-2 p-2 bg-gray-200 rounded-full z-10">
           &lt;
         </button>
-        <div ref={scrollContainer} className="flex overflow-x-auto space-x-4 scrollbar-hide">
-          {categories.map((category, index) => (
-            <div key={index} className="text-center inline-block">
-              <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
-                <img src={category.imageUrl} alt={category.name} className="w-full h-full object-cover" />
+        <div ref={scrollContainer} className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto scrollbar-hide">
+          {Array.isArray(categories) && categories.length > 0 ? (
+            categories.map((category, index) => (
+              <div key={index} className="text-center flex flex-col items-center">
+                <div className="w-24 h-24 rounded-full overflow-hidden mb-2">
+                  <img src={category.imageUrl} alt={category.name} className="w-full h-full object-cover" />
+                </div>
+                <h3 className="text-lg font-medium">{category.name}</h3>
+                <p className="text-sm text-gray-500">({category.count?.toLocaleString() || 0})</p> {/* Use optional chaining */}
               </div>
-              <h3 className="text-lg font-medium">{category.name}</h3>
-              <p className="text-sm text-gray-500">({category.count.toLocaleString()})</p>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-center text-gray-500">No categories available</p>
+          )}
         </div>
         <button onClick={scrollRight} className="absolute right-0 mr-2 p-2 bg-gray-200 rounded-full z-10">
           &gt;

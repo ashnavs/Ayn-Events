@@ -3,16 +3,16 @@ import Cookies from 'js-cookie';
 
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api/admin', // Replace with your backend URL
+  baseURL: 'http://localhost:5000/api/admin', 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add the auth token to headers
+
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    const token = Cookies.get('admintoken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,7 +23,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle responses and errors globally
+
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;

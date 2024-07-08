@@ -6,6 +6,7 @@ import { generateOTP } from "../../../utils/otpUtils";
 import sendOTPEmail from "../../../utils/emailUtils";
 import { getStoredOTP } from "../../../infrastructure/repositories/mongoUserRepository";
 import { generateToken } from "../../helper/jwtHelper";
+import { getVendor } from "../../../infrastructure/repositories/mongoVendorrepository";
 
 
 export default {
@@ -142,7 +143,13 @@ export default {
             throw new Error('Failed to resend otp')
         }
     },
-    
+    getVendor:async(id:string) => {
+        try {
+            return await getVendor(id)
+        } catch (error) {
+            
+        }
+    }
     
 
 

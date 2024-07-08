@@ -14,7 +14,7 @@ function UserHomePage() {
 
   const navigate = useNavigate()
 
-  console.log(user)
+  // console.log(user)
 
   const userStatus=async() =>{
     const res = await axiosInstanceUser.get(`/getStatus?id=${user.id}`)

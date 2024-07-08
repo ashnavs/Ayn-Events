@@ -3,6 +3,7 @@ import { clearUser,checkAuth } from '../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FaUser } from 'react-icons/fa';
+import { FiLogOut } from 'react-icons/fi';
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -26,9 +27,13 @@ const Header = () => {
       <nav className="flex space-x-8 text-sm">
         <a href="#" className="text-white hover:underline">Home</a>
         <a href="#" className="text-white hover:underline">Vendors</a>
-        <a onClick={handleLogout} className="text-white hover:underline cursor-pointer">Logout</a>
+      
         <button style={{ background: 'none', border: 'none', cursor: 'pointer', color:'white' }}>
       <FaUser size={18} />
+    </button>
+
+    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color:'white' }}>
+      <FiLogOut size={18}  onClick={handleLogout}/>
     </button>
       </nav>
     </header>

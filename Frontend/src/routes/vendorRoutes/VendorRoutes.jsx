@@ -5,6 +5,7 @@ import VendorOtp from "../../pages/vendor/VendorOtp"
 import License from "../../pages/vendor/License"
 import VendorPrivateRoutes from "./VendorPrivateRoutes"
 import VendorHome from "../../pages/vendor/VendorHome"
+import SuccessPage from "../../components/SuccessPage"
 
 const VendorRoutes = () => {
     return (
@@ -13,9 +14,12 @@ const VendorRoutes = () => {
                 <Route path='/login' element={<Login />} />
                 <Route path='/signup' element={<VendorSignup />} />
                 <Route path='/otp-verification' element={<VendorOtp />} />
-                <Route path='/license' element={<License />} />
-                <Route path='/profile' element={<VendorHome />} />
+                <Route path='/uploadlicense' element={<License />} />
+                <Route path='/success' element={<SuccessPage />} />
+
                 <Route path="" element={<VendorPrivateRoutes/>}>
+                       <Route path='/profile' element={<VendorHome />} />
+
                        
                 </Route>
 

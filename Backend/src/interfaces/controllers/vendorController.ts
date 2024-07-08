@@ -1,6 +1,12 @@
 import { NextFunction, Request, Response } from "express"
 import vendorInteractor from "../../domain/usecases/auth/vendorInteractor";
-
+import { log } from "console";
+import { multipartFormSubmission } from "../../domain/helper/formidable";
+import { uploadToS3 } from "../../utils/s3Uploader";
+import { LicenseDataRequest } from "../../domain/entities/types/licenceType";
+import { getServiceName, getVendorById } from "../../infrastructure/repositories/mongoAdminRepository";
+import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
+import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
 
 export default{
     vendorRegister: async(req:Request , res:Response, next:NextFunction) => {
@@ -9,9 +15,6 @@ export default{
 
             const { name, email, city, vendorType, password } = req.body;
             console.log(req.body);
-            
-
-            
             const vendor =  await vendorInteractor.registerVendor(req.body);
             res.status(200).json({message:'Registration success' , vendor})
         } catch (error) {
@@ -53,7 +56,79 @@ export default{
         }
         
       },
+    licenseUpload: async (req: Request, res: Response) => {
+      try {
+        const { licenseNumber, email, issueDate, expiryDate } = req.body;
+        
+       
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+        const licenseDocument = files?.licenseDocument?.[0];
+        const logo = files?.logo?.[0];
+    
+        if (!licenseDocument) {
+          console.error('License document is missing.');
+          return res.status(400).json({ message: 'License document is required' });
+        }
+    
+        if (!logo) {
+          console.error('Logo is missing.');
+          return res.status(400).json({ message: 'Logo is required' });
+        }
+    
+        const licenseData: LicenseDataRequest = { licenseNumber, email, issueDate, expiryDate, licenseDocument, logo };
+        const result = await vendorInteractor.uploadVendorLicense(licenseData);
+    
+        res.status(200).json({ message: 'License and logo uploaded successfully',result });
+      } catch (error: any) {
+        console.error('Error in licenseUpload:', error);
+        res.status(500).json({ message: 'Error uploading license and logo', error: error.message });
+      }
+    },
+    checkAuth:async(req:Request, res:Response)=>{
+      console.log("Hellooooo");
+      
+    },
+    resendOtp:async(req:Request,res:Response) => {
+      try {
+        const {email} = req.body;
+        const response = await vendorInteractor.resendOtp(email);
+        res.status(200).json({response})
+      } catch (error:any) {
+        res.status(500).json(error)
+      }
+    },
+    getVendorById:async(req:Request,res:Response) => {
+      try {
+        const vendors = await getAllVendors();
+        console.log(vendors,"😒");
+        
+        res.status(200).json(vendors);
+      } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch vendors' });
+      }
+    },
+    // getServices:async(req:Request,res:Response) => {
+    //   try {
+    //     const services = await getServiceName();
+    //     log(services)
+    //     res.status(200).json(services);
+    //   } catch (err) {
+    //     res.status(500).json({ error: 'Failed to fetch services' });
+    //   }
+    // }
+    getServices: async (req: Request, res: Response) => {
+      console.log("Call received")
+      try {
+        const services = await Service.find().distinct('name');
+        console.log(services, "😂");
+        res.status(200).json(services);
+      } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch services' });
+      }
+    },
     
     
-
-    }
+    
+    
+}

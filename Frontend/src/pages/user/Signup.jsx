@@ -11,8 +11,15 @@ import { auth, provider, signInWithPopup } from '../../firebase/firebase'; // Im
 function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading, error,user } = useSelector((state) => state.auth);
+  console.log(user);
+  
 
+useEffect(()=>{
+  if(user){
+    navigate('/home')
+  }
+},[])
   const handleGoogleSignup = async()=> {
     try {
       const result = await signInWithPopup(auth , provider)

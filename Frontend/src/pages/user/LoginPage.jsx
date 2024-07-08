@@ -1,6 +1,6 @@
 // LoginPage.jsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,14 @@ import { auth, provider, signInWithPopup } from '../../firebase/firebase';
 function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading, error ,user } = useSelector((state) => state.auth);
+  console.log(user);
+
+  useEffect(()=>{
+    if(user){
+      navigate('/home')
+    }
+  })
 
   const validationSchema = Yup.object().shape({
     email: Yup.string().email('Invalid email address').required('Email is required'),

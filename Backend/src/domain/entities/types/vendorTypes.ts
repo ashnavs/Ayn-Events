@@ -10,7 +10,13 @@ export interface IVendor{
     //review here
     vendorType: string;
     is_verified: boolean;
-    verify_request: boolean;
+    is_blocked: boolean;
     total_bookings: number;
     otp_verified:boolean
   }
+
+  
+export interface PaginatedVendors {
+  vendors: IVendor[];
+  totalPages: number;
+}

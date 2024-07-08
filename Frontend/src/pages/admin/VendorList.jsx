@@ -1,50 +1,205 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from '../../components/Sidebar';
-const vendors = Array(6).fill({
-    id: 1,
-    name: 'Vendor 1',
-    img: 'https://wallpapercrafter.com/sizes/2048x1152/14052-hands-wedding-love-groom-bride-4k.jpg',
-  });
+import axiosInstance from '../../services/axiosInstance';
+import Switch from 'react-switch';
 
 const VendorList = () => {
-    return (
-        <div className="flex h-screen bg-gray-100">
-        <Sidebar />
-        <div className="flex-grow p-10">
-        <div>
-          <div className="flex justify-between items-center mb-4">
+  const [vendors, setVendors] = useState([]);
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [blockedStatus, setBlockedStatus] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Function to fetch vendors with pagination
+  const fetchVendors = async (page = 1, limit = 5) => {
+    setStatus('loading');
+    try {
+      const response = await axiosInstance.get(`/vendorlist?page=${page}&limit=${limit}`);
+      console.log('API response:', response.data); // Log the API response for debugging
+      setVendors(response.data);
+      setTotalPages(response.data.totalPages);
+      setStatus('succeeded');
+    } catch (err) {
+      console.error('Failed to fetch vendors:', err);
+      setError(err.message);
+      setStatus('failed');
+    }
+  };
+
+  // Fetch vendors on component mount and when currentPage changes
+  useEffect(() => {
+    fetchVendors(currentPage);
+  }, [currentPage]);
+
+  // Update blockedStatus when vendors change
+  useEffect(() => {
+    const initialBlockedStatus = {};
+    if (Array.isArray(vendors)) {
+      vendors.forEach(vendor => {
+        initialBlockedStatus[vendor._id] = vendor.is_blocked || false; // Set default to false if is_blocked is missing
+      });
+    }
+    setBlockedStatus(initialBlockedStatus);
+  }, [vendors]);
+
+  // Handler for search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Toggle blocked status of a vendor
+  const toggleBlockedStatus = async (vendorId) => {
+    const isBlocked = !blockedStatus[vendorId];
+    setBlockedStatus((prevState) => ({
+      ...prevState,
+      [vendorId]: isBlocked,
+    }));
+    try {
+      await axiosInstance.patch(`/blockVendor/${vendorId}`, { is_blocked: isBlocked });
+    } catch (err) {
+      console.error('Failed to update vendor status:', err);
+      setBlockedStatus((prevState) => ({
+        ...prevState,
+        [vendorId]: !isBlocked,
+      }));
+    }
+  };
+
+  // Handler for page change
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-800">
+      <Sidebar />
+
+      <div className="flex-1 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center bg-white rounded shadow-md">
             <input
               type="text"
-              placeholder="Search users"
-              className="border rounded p-2 w-full max-w-xs"
+              placeholder="Search vendors"
+              className="px-4 py-2 w-64 border-none focus:outline-none"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
-            <button className="ml-4 border rounded p-2 bg-gray-200">
-              View vendor types
+            <button className="px-4 py-2 bg-gray-200 border-l border-gray-300">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M9 14a5 5 0 1 1 10 0 5 5 0 0 1-10 0zm0 0v1a1 0 0 0 1 1h3m-4-6h4" />
+              </svg>
             </button>
           </div>
-          <div className="text-lg font-bold mb-4">Vendors list</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
-            {vendors.map((vendor, index) => (
-              <div key={index} className="border rounded-lg overflow-hidden shadow-md">
-                <img src={vendor.img} alt={vendor.name} className="w-full" />
-                <div className="bg-gray-300 p-2 text-center">{vendor.name}</div>
-              </div>
-            ))}
-          </div>
-          {/* <div className="flex justify-center">
-            <button className="px-4 py-2 border rounded-l bg-gray-200">{"<"}</button>
-            {[...Array(10).keys()].map((page) => (
-              <button key={page} className="px-4 py-2 border bg-gray-200">
-                {page + 1}
-              </button>
-            ))}
-            <button className="px-4 py-2 border rounded-r bg-gray-200">{">"}</button>
-          </div> */}
         </div>
+
+        <div className="bg-white dark:bg-gray-700 shadow-lg rounded-lg overflow-hidden">
+          <table className="min-w-full leading-normal">
+            <thead>
+              <tr>
+                <th className="px-5 py-3 bg-gray-200 dark:bg-gray-800 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-5 py-3 bg-gray-200 dark:bg-gray-800 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-5 py-3 bg-gray-200 dark:bg-gray-800 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-5 py-3 bg-gray-200 dark:bg-gray-800 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {status === 'loading' ? (
+                <tr>
+                  <td colSpan="4" className="text-center p-5">
+                    Loading...
+                  </td>
+                </tr>
+              ) : status === 'failed' ? (
+                <tr>
+                  <td colSpan="4" className="text-center p-5 text-red-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : Array.isArray(vendors) && vendors.length > 0 ? (
+                vendors
+                  .filter((vendor) =>
+                    vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((vendor) => {
+                    const isBlocked = blockedStatus[vendor._id];
+
+                    return (
+                      <tr key={vendor._id}>
+                        <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
+                          <div className="flex items-center">
+                            <div className="ml-3">
+                              <p className="text-gray-900 dark:text-white whitespace-no-wrap">{vendor.name}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
+                          <p className="text-gray-900 dark:text-white whitespace-no-wrap">{vendor.email}</p>
+                        </td>
+                        <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
+                          <span className={`relative inline-block px-3 py-1 font-semibold leading-tight ${!isBlocked ? 'text-green-900' : 'text-red-900'}`}>
+                            <span aria-hidden className={`absolute inset-0 opacity-50 rounded-full ${!isBlocked ? 'bg-[#A39F74] dark:bg-[#A39F74]' : 'bg-red-200 dark:bg-red-600'}`}></span>
+                            <span className="relative">{!isBlocked ? 'Active' : 'Blocked'}</span>
+                          </span>
+                        </td>
+                        <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
+                          <Switch
+                            onChange={() => toggleBlockedStatus(vendor._id)}
+                            checked={isBlocked}
+                            onColor="#EF4444"
+                            offColor="#A39F74"
+                            uncheckedIcon={false}
+                            checkedIcon={false}
+                            height={20}
+                            width={40}
+                            borderRadius={10}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center p-5 text-red-500">
+                    No vendors found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination controls */}
+        <div className="flex justify-center mt-4">
+          <button
+            className={`mx-1 px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#a39f74] hover:bg-[#c0ba7e]'} text-white`}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <button
+            className={`mx-1 px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#a39f74] hover:bg-[#c0ba7e]'} text-white`}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
         </div>
       </div>
-        
-      );
+    </div>
+  );
 };
 
 export default VendorList;
