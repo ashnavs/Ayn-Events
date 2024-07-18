@@ -8,7 +8,7 @@ export interface IVendor{
     coverpicture: string;
     about: string;
     //review here
-    vendorType: string;
+    service: string;
     is_verified: boolean;
     is_blocked: boolean;
     total_bookings: number;

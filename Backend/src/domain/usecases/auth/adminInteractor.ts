@@ -22,7 +22,8 @@ export default {
                 throw new Error('Incorrect password')
             }
     
-            const token = await generateToken(admin.id, cred.email)
+            const role = 'admin'
+            const token = await generateToken(admin.id, cred.email,role)
             return {admin,token}
         } catch (error:any) {
             console.error(`Error: ${error.message}`);
@@ -76,9 +77,9 @@ export default {
           throw new Error('Failed to verify vendor'); 
         }
       },
-      updatedVendorStatus: async (userId: string, is_blocked: boolean): Promise<IUser | null> => {
+      updatedVendorStatus: async (vendorId: string, is_blocked: boolean): Promise<IUser | null> => {
         try {
-          const updatedVendor = await updateVendorStatus(userId, is_blocked);
+          const updatedVendor = await updateVendorStatus(vendorId, is_blocked);
           return updatedVendor;
         } catch (error: any) {
           throw new Error(error.message);

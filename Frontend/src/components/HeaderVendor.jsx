@@ -7,7 +7,7 @@ const Header = () => {
       <div className="container mx-auto flex justify-between items-center">
         <div className="text-3xl font-serif">
           {/* Replace with actual logo */}
-          <span className="px-4">POX</span>
+          <span className="px-4">Ayn Events</span>
         </div>
         <div className="flex space-x-4 text-sm">
           <span>SIGN IN</span>

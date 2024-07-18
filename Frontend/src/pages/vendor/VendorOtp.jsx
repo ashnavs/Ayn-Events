@@ -8,7 +8,7 @@ function VendorOtp() {
   const navigate = useNavigate();
   const submitRef = useRef(null);
   const location = useLocation();
-  const [timer, setTimer] = useState(60); // Initial timer set to 60 seconds
+  const [timer, setTimer] = useState(60); 
   const [isResendEnabled, setIsResendEnabled] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -24,7 +24,7 @@ function VendorOtp() {
     try {
       const response = await axios.post('http://localhost:5000/api/vendor/otp-vendor', { otp, email });
       toast.success(response.data.message);
-      navigate('/vendor/uploadlicense', { state: { email } }); // Ensure email is passed
+      navigate('/vendor/uploadlicense', { state: { email } }); 
     } catch (error) {
       if (error.response && error.response.data) {
         toast.error(`Error: ${error.response.data.error}`);

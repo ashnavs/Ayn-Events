@@ -1,43 +1,108 @@
+// import { NextFunction, Response, Request } from "express";
+// import jwt from 'jsonwebtoken';
+// import { Users } from "../../../../infrastructure/database/dbmodel/userModel";
+// import { log } from "console";
+
+// declare module 'express-serve-static-core' {
+//     interface Request {
+//       user?: any;     
+//     }
+// }
+
+// export const protectUser = async (req: Request, res: Response, next: NextFunction) => {
+//     const token = req.header("Authorization");
+//     if (token && token.startsWith("Bearer ")) {
+//         try {
+//             const tokenWithoutBearer = token.replace("Bearer ", "");
+//             const secretKey = process.env.JWT_SECRET || "YOUR_SECRET_KEY"; // Ensure you have a secret key set
+
+//             const decoded = jwt.verify(tokenWithoutBearer, secretKey) as { userId: string, email: string, role: string };
+//             log(decoded, 'protectuser');
+            
+//             const user = await Users.findById(decoded.userId);
+//             log('User found:', user);
+//             if (!user) {
+//                 res.status(401).json({ message: "User not found" });
+//                 return;
+//             }
+//             if (user.is_blocked) {
+//                 res.status(401).json({ message: "User is blocked" });
+//                 return;
+//             }
+
+//             req.user = user;
+//             next();
+//         } catch (error) {
+//             if (error instanceof jwt.TokenExpiredError) {
+//                 res.status(401).json({ message: "Token expired" });
+//             } else {
+//                 res.status(401).json({ message: "Not authorized, invalid token" });
+//             }
+//         }
+//     } else {
+//         res.status(401).json({ message: "Not authorized, no token" });
+//     }
+// };
+
+
 import { NextFunction, Response, Request } from "express";
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { Users, Iuser } from "../../../../infrastructure/database/dbmodel/userModel";
+import jwt from 'jsonwebtoken';
+import { Users } from "../../../../infrastructure/database/dbmodel/userModel";
+import { log } from "console";
 
-export const protectUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const token = req.header("Authorization");
-
-  if (!token || !token.startsWith("Bearer ")) {
-    console.log("No token or invalid format");
-     res.status(401).json({ message: "Not authorized, no token or invalid format" });
-     return
-  }
-
-  try {
-    const tokenWithoutBearer = token.replace("Bearer ", "");
-    console.log("Token without Bearer:", tokenWithoutBearer);
-
-    const secretKey: string = process.env.JWT_SECRET || "";
-    const decoded = jwt.verify(tokenWithoutBearer, secretKey) as JwtPayload & { userId: string };
-    console.log({decoded})
-
-    if (decoded && typeof decoded === 'object' && 'user' in decoded && 'exp' in decoded) {
-      const userId = decoded.user;
-      const user: Iuser | null = await Users.findById(userId);
-      if (!user) {
-         res.status(401).json({ message: "User not found" });
-         return
-      }
-      if (user.is_blocked) {
-         res.status(401).json({ message: "User is blocked" });
-         return
-      }
-      (req as any).locals = { user };
-      next();
-    } else {
-      throw new Error('Invalid token format');
+declare module 'express-serve-static-core' {
+    interface Request {
+      user?: any;     
     }
-  } catch (error) {
-    console.error("Error verifying token:", error);
-     res.status(401).json({ message: "Not authorized, invalid token" });
-     return
-  }
+}
+
+export const protectUser = async (req: Request, res: Response, next: NextFunction) => {
+    let token = req.header("Authorization");
+
+    log(token, 'token123'); 
+
+    if (token && token.startsWith("Bearer ")) {
+        token = token.split(' ')[1]; 
+        log(token, 'tokenWithoutBearer'); 
+
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { user: string, email: string, role: string };
+            log(decoded, "decoded"); 
+
+            req.user = decoded;
+            const userId = req.user.user;
+            log(userId, "userId"); 
+
+            const user = await Users.findById(userId);
+            log('User found:', user); 
+
+            if (!user) {
+                log('User not found');
+                res.status(401).json({ message: "User not found" });
+                return;
+            }
+
+            if (user.is_blocked) {
+                log('User is blocked');
+                res.status(401).json({ message: "User is blocked" });
+                return;
+            }
+
+            if(req.user.role = 'user'){
+                next();
+            }
+
+           
+        } catch (error) {
+            log(error, 'JWT verification error'); // Log the error
+            if (error instanceof jwt.TokenExpiredError) {
+                res.status(401).json({ message: "Token expired" });
+            } else {
+                res.status(401).json({ message: "Not authorized, invalid token" });
+            }
+        }
+    } else {
+        log('No token provided');
+        res.status(401).json({ message: "Not authorized, no token" });
+    }
 };

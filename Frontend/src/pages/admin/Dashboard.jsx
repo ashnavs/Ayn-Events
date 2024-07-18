@@ -1,4 +1,3 @@
-// src/Dashboard.js
 import React from 'react';
 import { FaStore, FaUsers } from 'react-icons/fa';
 import Sidebar from '../../components/Sidebar';

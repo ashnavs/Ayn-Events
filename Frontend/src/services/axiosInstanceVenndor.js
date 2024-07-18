@@ -6,14 +6,19 @@ const axiosInstanceVendor = axios.create({
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: true, 
+
   });
 
 
 axiosInstanceVendor.interceptors.request.use(
   (config) => {
     const token = Cookies.get('tokenvendor');
+    console.log("tokenvendor",token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Token in request:', config.headers.Authorization);
+
     }
     return config;
   },
@@ -22,18 +27,14 @@ axiosInstanceVendor.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle responses and errors globally
+
 axiosInstanceVendor.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    // Handle errors (e.g., token expiration, network errors)
     if (error.response && error.response.status === 401) {
-      // Redirect or handle unauthorized access
       console.error('Unauthorized access:', error);
-      // Example: redirect to login page
-      // window.location.href = '/login';
     }
     return Promise.reject(error);
   }

@@ -19,7 +19,7 @@ const HeroBanner = () => {
               {/* Add your cities here */}
             </select>
           </div>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm">
+          <button className="bg-[#a39f74] text-white px-4 py-2 rounded-md shadow-sm">
             Filter
           </button>
         </div>

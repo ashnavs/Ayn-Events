@@ -14,6 +14,14 @@ const customStyles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
+    borderRadius: '10px',
+    padding: '20px',
+    border: '1px solid #ccc',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#f8f8f8',
+  },
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 };
 
@@ -22,7 +30,12 @@ const AddService = () => {
   const { admin } = useSelector((state) => state.admin);
   const [services, setServices] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
   const [newService, setNewService] = useState({ name: '', image: null, createdAt: '', isBlocked: false });
+  const [serviceToToggle, setServiceToToggle] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 5; // Adjust as needed, this sets the limit of items per page
 
   const openModal = () => {
     setModalIsOpen(true);
@@ -31,6 +44,16 @@ const AddService = () => {
   const closeModal = () => {
     setModalIsOpen(false);
     setNewService({ name: '', image: null, createdAt: '', isBlocked: false });
+  };
+
+  const openConfirmModal = (service) => {
+    setServiceToToggle(service);
+    setConfirmModalIsOpen(true);
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModalIsOpen(false);
+    setServiceToToggle(null);
   };
 
   const handleInputChange = (e) => {
@@ -60,52 +83,59 @@ const AddService = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axiosInstance.get('http://localhost:5000/api/admin/get-services');
-      console.log('API Response:', response.data); // Log API response
-      setServices(response.data);
+      const response = await axiosInstance.get(`http://localhost:5000/api/admin/get-services?page=${currentPage}&limit=${limit}`);
+      console.log('API Response:', response.data);
+      setServices(response.data.services); // Update services state
+      setTotalPages(response.data.totalPages); // Update totalPages state
     } catch (err) {
       console.error('Failed to fetch services:', err.response ? err.response.data : err.message);
     }
   };
 
-  const toggleBlockedStatus = async (serviceId) => {
-    const service = services.find((service) => service._id === serviceId);
-    const isBlocked = !service.isBlocked;
-    try {
-      await axiosInstance.patch(`/blockService/${serviceId}`, { is_active: isBlocked });
-      setServices((prevServices) =>
-        prevServices.map((s) =>
-          s._id === serviceId ? { ...s, isBlocked } : s
-        )
-      );
-    } catch (err) {
-      console.error('Failed to update service status:', err);
+
+  const confirmToggleBlockedStatus = async () => {
+    if (serviceToToggle) {
+      const isBlocked = !serviceToToggle.isBlocked;
+      try {
+        await axiosInstance.patch(`/blockService/${serviceToToggle._id}`, { is_active: isBlocked });
+        setServices((prevServices) =>
+          prevServices.map((s) =>
+            s._id === serviceToToggle._id ? { ...s, isBlocked } : s
+          )
+        );
+        closeConfirmModal();
+      } catch (err) {
+        console.error('Failed to update service status:', err);
+      }
     }
   };
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
+  const handlePageChange = (newPage) => {
+    console.log('Changing page to:', newPage); 
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage); 
+    }
+  };
+
 
   useEffect(() => {
     fetchServices();
-  }, [admin]);
-
-  console.log('Services:', services); // Log services state
+  }, [currentPage, admin]); 
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-800">
       <Sidebar />
 
       <div className="flex-1 p-6">
-        <h2 className="text-2xl font-bold mb-4">Service List</h2>
-
-        <button
-          onClick={openModal}
-          className="mb-4 px-4 py-2 bg-[#a39f74] text-white rounded hover:bg-[#8b8866] focus:outline-none"
-        >
-          Add Service
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Service List</h2>
+          <button
+            onClick={openModal}
+            className="px-4 py-2 bg-[#a39f74] text-white rounded hover:bg-[#8b8866] focus:outline-none"
+          >
+            Add Service
+          </button>
+        </div>
 
         <div className="bg-white dark:bg-gray-700 shadow-lg rounded-lg overflow-hidden">
           <table className="min-w-full leading-normal">
@@ -158,7 +188,7 @@ const AddService = () => {
                   </td>
                   <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
                     <Switch
-                      onChange={() => toggleBlockedStatus(service._id)}
+                      onChange={() => openConfirmModal(service)}
                       checked={service.isBlocked}
                       onColor="#EF4444"
                       offColor="#A39F74"
@@ -173,6 +203,24 @@ const AddService = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex justify-center mt-4">
+          <button
+            className={`mx-1 px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#a39f74] hover:bg-[#c0ba7e]'} text-white`}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <button
+            className={`mx-1 px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#a39f74] hover:bg-[#c0ba7e]'} text-white`}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+
         </div>
 
         <Modal
@@ -232,6 +280,38 @@ const AddService = () => {
               </button>
             </div>
           </form>
+        </Modal>
+
+        <Modal
+          isOpen={confirmModalIsOpen}
+          onRequestClose={closeConfirmModal}
+          style={customStyles}
+          contentLabel="Confirmation Modal"
+        >
+          <h2 className="text-xl font-bold mb-4">Confirm Action</h2>
+          {serviceToToggle && (
+            <p className="mb-4">
+              {serviceToToggle.isBlocked
+                ? `Are you sure you want to unblock the service "${serviceToToggle.name}"?`
+                : `Are you sure you want to block the service "${serviceToToggle.name}"?`}
+            </p>
+          )}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={closeConfirmModal}
+              className="mr-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 focus:outline-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmToggleBlockedStatus}
+              className="px-4 py-2 bg-[#a39f74] text-white rounded hover:bg-[#8e8b6a] focus:outline-none"
+            >
+              Confirm
+            </button>
+          </div>
         </Modal>
       </div>
     </div>

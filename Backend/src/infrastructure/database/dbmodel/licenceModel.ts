@@ -53,7 +53,7 @@ export interface License extends Document {
   issueDate: string;
   expiryDate: string;
   licenseDocumentUrl: string;
-  logoUrl: string; // New logo URL field
+  logoUrl: string; 
 }
 
 const LicenseSchema: Schema = new Schema({
@@ -62,7 +62,7 @@ const LicenseSchema: Schema = new Schema({
   issueDate: { type: String, required: true },
   expiryDate: { type: String, required: true },
   licenseDocumentUrl: { type: String, required: true },
-  logoUrl: { type: String, required: true }, // New logo URL field
+  logoUrl: { type: String }, 
 });
 
 export const LicenseModel: Model<License> = mongoose.model<License>('License', LicenseSchema);

@@ -5,6 +5,7 @@ import { Vendor } from "../database/dbmodel/vendorModel";
 import { PaginatedVendors } from "../../domain/entities/types/vendorTypes";
 import { LicenseModel } from "../database/dbmodel/licenceModel";
 import{ Service , IService} from "../database/dbmodel/serviceModel";
+import { log } from "console";
 
 
 export const findAdmin = async (email: string) => {
@@ -86,22 +87,36 @@ export const updateVendorVerificationStatus = async (id: string, is_verified: bo
   return await Vendor.findByIdAndUpdate(id, { is_verified: true }, { new: true });
 };
 
-export const updateVendorStatus = async (userId: string, isBlocked: boolean): Promise<IUser | null> => {
+export const updateVendorStatus = async (vendorId: string, isBlocked: boolean): Promise<IUser | null> => {
   try {
     const updatedVndor = await Vendor.findByIdAndUpdate(
-      userId,
+      vendorId,
       { is_blocked: isBlocked },
       { new: true }
     );
+    log(updatedVndor,'upvendor')
     return updatedVndor;
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
 
-export const getServices = async() => {
-  return await Service.find()
-}
+export const getServices = async (page: number, limit: number) => {
+  try {
+    const services = await Service.find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+    const totalServices = await Service.countDocuments();
+    const totalPages = Math.ceil(totalServices / limit);
+
+    return {
+      services,
+      totalPages,
+    };
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
 
 export const getServiceName = async() => {
   return await Service.find({name:1})

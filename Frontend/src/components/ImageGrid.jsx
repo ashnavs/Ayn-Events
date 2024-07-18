@@ -1,25 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axiosInstanceVendor from '../services/axiosInstanceVenndor';
 
-const ImageGrid = () => {
-  // Sample images array
-  const images = [
-    'https://avatars.mds.yandex.net/i?id=5e91b4b1c2ca1d65daa7558e8d9ca83d95de19ac-10449875-images-thumbs&n=13', 
-    'https://avatars.mds.yandex.net/i?id=ec09948b7bf217712931d5720b960d44f4d78919-8498375-images-thumbs&n=13',
-    'https://avatars.mds.yandex.net/i?id=c3124cc76bf3970ffcb78a421f631fac-4236738-images-thumbs&n=13',
-    'https://avatars.mds.yandex.net/i?id=70b36004418e5fff05c1c05f356335df-4268363-images-thumbs&n=13',
-    'https://avatars.mds.yandex.net/i?id=5e91b4b1c2ca1d65daa7558e8d9ca83d95de19ac-10449875-images-thumbs&n=13', 
-    'https://avatars.mds.yandex.net/i?id=ec09948b7bf217712931d5720b960d44f4d78919-8498375-images-thumbs&n=13',
-    'https://avatars.mds.yandex.net/i?id=c3124cc76bf3970ffcb78a421f631fac-4236738-images-thumbs&n=13',
-    'https://avatars.mds.yandex.net/i?id=70b36004418e5fff05c1c05f356335df-4268363-images-thumbs&n=13',
+const ImageGrid = ({ vendorId }) => {
+  const [posts, setPosts] = useState([]);
 
-  ]
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axiosInstanceVendor.get(`/getposts/${vendorId}`);
+        console.log(response);
+        setPosts(response.data || []); // Ensure data is always an array
+      } catch (error) {
+        console.error('Error fetching getposts:', error);
+      }
+    };
+
+    fetchPosts();
+  }, [vendorId]);
 
   return (
-    <div className="bg-[#F8F4EF] min-h-screen p-4 flex flex-col items-center">
-      <div className="grid grid-cols-4 gap-4 max-w-6xl">
-        {images.map((image, index) => (
+    <div className="bg-[#F8F4EF]  p-4 flex flex-col items-center">
+      <div className="grid grid-cols-4 mt-10 gap-4 max-w-6xl">
+        {posts.map((post, index) => (
           <div key={index} className="relative overflow-hidden rounded-lg shadow-lg">
-            <img src={image} alt={`Event ${index + 1}`} className="w-full h-full object-cover" />
+            <img src={post.image} alt={`Event ${index + 1}`} className="w-full h-40 object-cover object-center" />
+            <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white p-2 text-sm">
+              {post.description}
+            </div>
           </div>
         ))}
       </div>

@@ -13,7 +13,7 @@ export const createVendor = async (vendorData: IVendor, hashedPassword:string) =
         email:vendorData.email,
         password:hashedPassword,
         city:vendorData.city,
-        type:vendorData.vendorType,
+        service:vendorData.service,
         is_verified:false
 
     })

@@ -2,8 +2,7 @@
 import React from 'react';
 import { FiBell, FiLogOut, FiMessageSquare } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
-import axiosInstanceVendor from '../services/axiosInstanceVenndor';
-import { clearVendor } from '../features/vendor/vendorSlice';
+import { clearVendor ,checkAuth} from '../features/vendor/vendorSlice';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
@@ -13,7 +12,10 @@ const VendorHeader = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  
+  const handleAuth = () => {
+    console.log('call1');
+    dispatch(checkAuth())
+  }
 
   const logOut = () => {
     clearVendor()
@@ -37,7 +39,7 @@ const VendorHeader = () => {
             <span className="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500"></span>
           </button>
         </div>
-        <button className="focus:outline-none">
+        <button onClick={handleAuth} className="focus:outline-none">
           <FiMessageSquare className="h-6 w-6 text-white" />
         </button>
       

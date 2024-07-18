@@ -6,6 +6,8 @@ import { License, LicenseModel } from "../../infrastructure/database/dbmodel/lic
 import { log } from "console";
 import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
 import { getServices } from "../../infrastructure/repositories/mongoAdminRepository";
+import { countReportsByVendor } from "../../infrastructure/repositories/mongoReportRepository";
+import Report from "../../infrastructure/database/dbmodel/reportModel";
 
 
 
@@ -50,13 +52,16 @@ export default {
     try {
       const { userId } = req.params;
       const { is_blocked } = req.body;
+      console.log('Request Params:', req.params);
+      console.log('Request Body:', req.body);
+      
       const updatedUser = await adminInteractor.updatedUserStatus(userId, is_blocked);
       res.status(200).json(updatedUser);
     } catch (error: any) {
       console.error(error.message);
       res.status(500).json({ error: error.message });
-
     }
+  
   },
   getVendors: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -104,7 +109,7 @@ export default {
       next(error);
     }
   },
-  // Update vendor is_verified
+  
   updateIsVerified: async (req: Request, res: Response) => {
     const vendorId = req.params.vendorId;
     const { is_verified } = req.body;
@@ -145,6 +150,8 @@ export default {
       const { vendorId } = req.params;
       const { is_blocked } = req.body;
       const updatedVendor = await adminInteractor.updatedVendorStatus(vendorId, is_blocked);
+      log('protectaDMIN CALLED')
+      log(updatedVendor,'upppppp')
       res.status(200).json(updatedVendor);
     } catch (error: any) {
       console.error(error.message);
@@ -154,8 +161,10 @@ export default {
   },
   addService: async (req: Request, res: Response) => {
     try {
+      console.log('🤦‍♀️');
+      
       const { name } = req.body;
-      const image = req.file; // Assuming single file upload
+      const image = req.file; 
 
       if (!image) {
         return res.status(400).json({ error: 'Image file is required' });
@@ -170,9 +179,10 @@ export default {
       return res.status(500).json({ error: 'Failed to add service' });
     }
   },
-  getServices : async (req: Request, res: Response) => {
+  getServices: async (req: Request, res: Response) => {
     try {
-      const services = await getServices();
+      const { page = 1, limit = 5 } = req.query; // Adjusted limit to match frontend
+      const services = await getServices(Number(page), Number(limit));
       res.status(200).json(services);
     } catch (err) {
       res.status(500).json({ error: 'Failed to fetch services' });
@@ -191,4 +201,32 @@ export default {
 
     }
   },
+  getReportCounts:async (req:Request, res:Response) => {
+    try {
+      const reportCounts = await countReportsByVendor();
+      log(reportCounts,'rpcount')
+      return res.status(200).json(reportCounts);
+    } catch (error:any) {
+      console.error('Error getting report counts:', error);
+      res.status(500).json({ message: 'Error getting report counts', error: error.message });
+    }
+  },
+  reportDetails : async (req: Request, res: Response) => {
+    log('Report details call');
+    try {
+      const { id } = req.params;
+      const report = await Report.find({ vendorId: id }).populate('vendorId', 'name'); // Populate vendor name
+      log(report, 'Report details');
+  
+      if (!report) {
+        return res.status(404).json({ message: 'Report not found' });
+      }
+  
+      console.log(report, 'Report details');
+      res.status(200).json(report);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Error getting report details', error: error.message });
+    }
+  }
+    
 }

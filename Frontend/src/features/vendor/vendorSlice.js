@@ -2,6 +2,7 @@
   import axios from 'axios';
   import vendorService from './vendorService';
   import Cookies from 'js-cookie';
+import axiosInstanceVendor from '../../services/axiosInstanceVenndor';
 
   // export const signupVendor = createAsyncThunk(
   //     'vendor/signupVendor',
@@ -38,8 +39,8 @@
           try {
               console.log('vendordata',vendorData);
               const response = await vendorService.loginVendor(vendorData)
-              // console.log(response.data.response.token,'👿');
-              Cookies.set('tokenvendor',response.data.response.token)
+              console.log(response.data.response.token,'👿');
+              Cookies.set('tokenvendor',response.data.response.token.token)
               return response.data
           } catch (err) {
               if (!err.response) {
@@ -73,6 +74,20 @@
         Cookies.remove('tokenvendor');
       }
     );
+
+    
+export const checkAuth = createAsyncThunk(
+  'vendor/checkAuth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstanceVendor.post('/checkAuth');
+      console.log(response);
+      return response.data; 
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
     
     
 
@@ -127,7 +142,6 @@
           })
           .addCase(uploadLicense.fulfilled, (state, action) => {
             state.status = 'succeeded';
-            // Add any additional state updates as needed
           })
           .addCase(uploadLicense.rejected, (state, action) => {
             state.status = 'failed';

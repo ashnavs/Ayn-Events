@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from "express"
+import { NextFunction, Request, response, Response } from "express"
 import vendorInteractor from "../../domain/usecases/auth/vendorInteractor";
 import { log } from "console";
-import { multipartFormSubmission } from "../../domain/helper/formidable";
 import { uploadToS3 } from "../../utils/s3Uploader";
 import { LicenseDataRequest } from "../../domain/entities/types/licenceType";
 import { getServiceName, getVendorById } from "../../infrastructure/repositories/mongoAdminRepository";
 import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
 import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
+import { getPosts } from "../../infrastructure/repositories/mongoPostRepository";
 
 export default{
     vendorRegister: async(req:Request , res:Response, next:NextFunction) => {
@@ -108,15 +108,6 @@ export default{
         res.status(500).json({ error: 'Failed to fetch vendors' });
       }
     },
-    // getServices:async(req:Request,res:Response) => {
-    //   try {
-    //     const services = await getServiceName();
-    //     log(services)
-    //     res.status(200).json(services);
-    //   } catch (err) {
-    //     res.status(500).json({ error: 'Failed to fetch services' });
-    //   }
-    // }
     getServices: async (req: Request, res: Response) => {
       console.log("Call received")
       try {
@@ -127,8 +118,40 @@ export default{
         res.status(500).json({ error: 'Failed to fetch services' });
       }
     },
+    createPost: async(req:Request , res:Response) => {
+      log('post ')
+      try {
+
+        const { description,vendorId } = req.body;
+        log(req.body,'post body')
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        const image = files?.image?.[0];
+  
+        if (!description || !image) {
+          return res.status(400).json({ error: 'Description and image are required' });
+        }
+
+      
+        console.log(req.body,image,'posts');
+
+        const postData = {vendorId,description,image};
+        await vendorInteractor.createPost(postData);
     
+        return res.status(200).json({messgae: 'post added successfully'})
+        
+      } catch (error:any) {
+        res.status(500).json({ error: 'Failed to add post' });
+      }
+    },
     
-    
+    getPosts: async (req: Request, res: Response) => {
+      try {
+        const { vendorId } = req.params;
+        const posts = await getPosts(vendorId);
+        res.status(200).json(posts);
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to get post' });
+      }
+    }
     
 }

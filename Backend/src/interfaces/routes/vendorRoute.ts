@@ -12,7 +12,8 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 }).fields([
   { name: 'licenseDocument', maxCount: 1 },
-  { name: 'logo', maxCount: 1 }
+  { name: 'logo', maxCount: 1 },
+  { name: 'image', maxCount: 1 }, 
 ]);
 
 export { upload };
@@ -28,7 +29,9 @@ vendorRouter.post('/login', vendorController.vendorLogin)
 vendorRouter.post('/uploadlicense', upload, vendorController.licenseUpload);
 vendorRouter.post('/checkAuth',protectVendor,vendorController.checkAuth);
 vendorRouter.get('/service-types', vendorController.getServices);
-vendorRouter.get('/:id', vendorController.getVendorById);
+vendorRouter.get('/:id',vendorController.getVendorById);
+vendorRouter.post('/posts',upload,vendorController.createPost)
+vendorRouter.get('/getposts/:vendorId',vendorController.getPosts)
 
 
 

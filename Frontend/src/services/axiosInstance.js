@@ -5,10 +5,11 @@ import Cookies from 'js-cookie';
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:5000/api/admin', 
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type':'application/json',
   },
-});
+  withCredentials: true, // Ensure credentials are included in requests
 
+});
 
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -23,7 +24,6 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;
@@ -31,7 +31,8 @@ axiosInstance.interceptors.response.use(
   (error) => {
     // Handle errors (e.g., token expiration, network errors)
     if (error.response && error.response.status === 401) {
-      nav
+
+      console.error('Unauthorized access:', error);
     }
     return Promise.reject(error);
   }

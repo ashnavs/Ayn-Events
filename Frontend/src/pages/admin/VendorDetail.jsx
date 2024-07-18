@@ -221,7 +221,7 @@ function VendorDetail() {
               </div>
             </div>
 
-            {/* Thin Line */}
+            
             <hr className="my-6 border-gray-300 dark:border-gray-600" />
           </div>
         ) : (

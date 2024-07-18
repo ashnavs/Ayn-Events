@@ -5,27 +5,16 @@ import { FiStar } from 'react-icons/fi';
 import { useSelector } from 'react-redux';
 import { selectVendor } from '../features/vendor/vendorSlice';
 import axiosInstanceVendor from '../services/axiosInstanceVenndor';
+import CreatePostModal from './CreatePostModal';
 
 const VendorLogo = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);  
   const vendor = useSelector(selectVendor)
 
-  // const fetchVendor = async () => {
-  //   setStatus('loading');
-  //   try {
-  //     const vendorResponse = await axiosInstance.get(`/vendor/${vendorId}`);
-  //     console.log(vendorResponse.data); 
-  //     setVendor(vendorResponse.data);
-  //     setStatus('succeeded');
-  //   } catch (err) {
-  //     console.error('Failed to fetch vendor:', err);
-  //     setError(err.message);
-  //     setStatus('failed');
-  //   }
-  // };
   const fetchVendor = async () => {
     setStatus('loading');
     try {
-      const vendorResponse = await axiosInstanceVendor.get(`/vendor/${vendorId}`);
+      const vendorResponse = await axiosInstanceVendor.get(`/${vendorId}`);
       console.log(vendorResponse.data); 
       setVendor(vendorResponse.data);
       setStatus('succeeded');
@@ -56,7 +45,6 @@ const VendorLogo = () => {
                   <h2 className="text-2xl font-bold">{vendor.vendor.name}</h2>
                   <p>{vendor.vendor.email}</p>
                   <p>{vendor.vendor.city  }</p>
-                  {/* <p>{vendor.phone}</p> */}
                 </div>
                 <div className="flex items-center">
                   <FiStar className="text-yellow-500" />
@@ -66,7 +54,12 @@ const VendorLogo = () => {
               </div>
               <div className="mt-4 flex justify-around">
                 <button className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md">Booking Details</button>
-                <button className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md">Create Post</button>
+                <button
+                  className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Create Post
+                </button>
                 <button className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md">Edit Profile</button>
               </div>
             </>
@@ -75,6 +68,7 @@ const VendorLogo = () => {
           )}
         </div>
       </div>
+      <CreatePostModal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} />
     </div>
   );
 };

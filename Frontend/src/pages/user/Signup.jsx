@@ -2,16 +2,18 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { signupUser, GoogleAuth } from '../../features/auth/authSlice';  // Corrected path
+import { signupUser, GoogleAuth, selectUser } from '../../features/auth/authSlice';  
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { auth, provider, signInWithPopup } from '../../firebase/firebase'; // Import Firebase functions
+import { auth, provider, signInWithPopup } from '../../firebase/firebase'; 
 
 
 function Signup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error,user } = useSelector((state) => state.auth);
+  const { loading, error} = useSelector((state) => state.auth);
+
+  const user = useSelector(selectUser)
   console.log(user);
   
 
@@ -20,25 +22,40 @@ useEffect(()=>{
     navigate('/home')
   }
 },[])
-  const handleGoogleSignup = async()=> {
-    try {
-      const result = await signInWithPopup(auth , provider)
-      const user = result.user;
-      console.log('Google user',user);
 
-      dispatch(GoogleAuth({ email: user.email, name: user.displayName })).then((response) => {
-        if (response.meta.requestStatus === 'fulfilled') {
-          toast.success('User signed up with Google');
-          navigate('/home');
-        } else {
-          toast.error('Google signup failed');
-        }
-      });
+
+  const handleGoogleSignup = async () => {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        console.log('Google user', user);
+
+        dispatch(GoogleAuth({ email: user.email, name: user.displayName }))
+            .then((response) => {
+                console.log('GoogleAuth response:', response); 
+                if (response.meta.requestStatus === 'fulfilled') {
+                    const userId = response.payload.response.user?.id;
+                    // const token = response.payload.response.token;
+                    if (userId) {
+                        console.log('Signup successful. User ID:', userId);
+                        toast.success('User signed up with Google');
+                        navigate('/home');
+                    } else {
+                        console.error('User ID is undefined:', response.payload.user);
+                        toast.error('Google signup failed');
+                    }
+                } else {
+                    toast.error('Google signup failed');
+                }
+            });
     } catch (error) {
-      console.error('Error during Google signup:', error);
-      toast.error('Google signup failed');      
+        console.error('Error during Google signup:', error);
+        toast.error('Google signup failed');
     }
-  }
+};
+
+
+
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try { 
@@ -54,12 +71,6 @@ useEffect(()=>{
     }
   };
 
-
-  // useEffect(() => {
-  //   if (user) {
-  //     console.log('User:', user); // Debug: Check the user object
-  //   }
-  // }, [user]);
 
   const validationSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -94,7 +105,7 @@ useEffect(()=>{
                       type="text"
                       name="name"
                       id="name"
-                      className={`bg-gray-50 border ${errors.name && touched.name ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+                      className={`bg-gray-50 border ${errors.name && touched.name ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:outline-none focus:border-[#a39f74d6] block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                       placeholder="Your Name"
                     />
                     <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
@@ -104,7 +115,7 @@ useEffect(()=>{
                       type="email"
                       name="email"
                       id="email"
-                      className={`bg-gray-50 border ${errors.email && touched.email ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+                      className={`bg-gray-50 border ${errors.email && touched.email ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:outline-none focus:border-[#a39f74d6] block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                       placeholder="Email"
                     />
                     <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
@@ -115,7 +126,7 @@ useEffect(()=>{
                       name="password"
                       id="password"
                       placeholder="password"
-                      className={`bg-gray-50 border ${errors.password && touched.password ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+                      className={`bg-gray-50 border ${errors.password && touched.password ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:outline-none focus:border-[#a39f74d6] block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                     />
                     <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
@@ -125,7 +136,7 @@ useEffect(()=>{
                       name="confirmPassword"
                       id="confirmPassword"
                       placeholder="confrim-password"
-                      className={`bg-gray-50 border ${errors.confirmPassword && touched.confirmPassword ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+                      className={`bg-gray-50 border ${errors.confirmPassword && touched.confirmPassword ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:outline-none focus:border-[#a39f74d6] block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                     />
                     <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
                   </div>

@@ -1,16 +1,7 @@
 import { generateName } from "user_random_name_generator";
-
 import { Upload, } from "@aws-sdk/lib-storage";
 import { S3Client,PutObjectCommand,ObjectCannedACL } from "@aws-sdk/client-s3";
 import fs from "fs";
-
-// AWS.config.update({
-//     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//     region: process.env.AWS_REGION,
-//   });
-  
-//   export const s3 = new AWS.S3();
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION + "",

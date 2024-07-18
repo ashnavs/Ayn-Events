@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import axiosInstance from '../../services/axiosInstance';
 import Switch from 'react-switch';
+import Modal from 'react-modal';
 
 const VendorList = () => {
   const [vendors, setVendors] = useState([]);
@@ -11,13 +12,13 @@ const VendorList = () => {
   const [blockedStatus, setBlockedStatus] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
+  const [vendorToToggle, setVendorToToggle] = useState(null);
 
-  // Function to fetch vendors with pagination
   const fetchVendors = async (page = 1, limit = 5) => {
     setStatus('loading');
     try {
       const response = await axiosInstance.get(`/vendorlist?page=${page}&limit=${limit}`);
-      console.log('API response:', response.data); // Log the API response for debugging
       setVendors(response.data);
       setTotalPages(response.data.totalPages);
       setStatus('succeeded');
@@ -28,28 +29,24 @@ const VendorList = () => {
     }
   };
 
-  // Fetch vendors on component mount and when currentPage changes
   useEffect(() => {
     fetchVendors(currentPage);
   }, [currentPage]);
 
-  // Update blockedStatus when vendors change
   useEffect(() => {
     const initialBlockedStatus = {};
     if (Array.isArray(vendors)) {
       vendors.forEach(vendor => {
-        initialBlockedStatus[vendor._id] = vendor.is_blocked || false; // Set default to false if is_blocked is missing
+        initialBlockedStatus[vendor._id] = vendor.is_blocked || false;
       });
     }
     setBlockedStatus(initialBlockedStatus);
   }, [vendors]);
 
-  // Handler for search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Toggle blocked status of a vendor
   const toggleBlockedStatus = async (vendorId) => {
     const isBlocked = !blockedStatus[vendorId];
     setBlockedStatus((prevState) => ({
@@ -67,10 +64,40 @@ const VendorList = () => {
     }
   };
 
-  // Handler for page change
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= totalPages) {
       setCurrentPage(newPage);
+    }
+  };
+
+  const openConfirmModal = (vendor) => {
+    setVendorToToggle(vendor);
+    setConfirmModalIsOpen(true);
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModalIsOpen(false);
+    setVendorToToggle(null);
+  };
+
+  const confirmToggleBlockedStatus = async () => {
+    if (vendorToToggle) {
+      const isBlocked = !blockedStatus[vendorToToggle._id];
+      try {
+        await axiosInstance.patch(`/blockVendor/${vendorToToggle._id}`, { is_blocked: isBlocked });
+        setBlockedStatus((prevState) => ({
+          ...prevState,
+          [vendorToToggle._id]: isBlocked,
+        }));
+        setVendors((prevVendors) =>
+          prevVendors.map((vendor) =>
+            vendor._id === vendorToToggle._id ? { ...vendor, is_blocked: isBlocked } : vendor
+          )
+        );
+        closeConfirmModal();
+      } catch (err) {
+        console.error('Failed to update vendor status:', err);
+      }
     }
   };
 
@@ -155,7 +182,7 @@ const VendorList = () => {
                         </td>
                         <td className="px-5 py-5 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
                           <Switch
-                            onChange={() => toggleBlockedStatus(vendor._id)}
+                            onChange={() => openConfirmModal(vendor)}
                             checked={isBlocked}
                             onColor="#EF4444"
                             offColor="#A39F74"
@@ -198,6 +225,50 @@ const VendorList = () => {
           </button>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={confirmModalIsOpen}
+        onRequestClose={closeConfirmModal}
+        contentLabel="Confirmation Modal"
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          },
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#fff',
+            borderRadius: '8px',
+            maxWidth: '400px',
+            padding: '20px',
+          },
+        }}
+        ariaHideApp={false}
+      >
+        <h2 className="text-lg font-bold mb-4">Confirm Action</h2>
+        <p className="mb-4">
+          Are you sure you want to {vendorToToggle && !blockedStatus[vendorToToggle._id] ? 'block' : 'unblock'} this vendor?
+        </p>
+        <div className="flex justify-end">
+          <button
+            className="px-4 py-2 mr-2 bg-[#a39f74] text-white rounded hover:bg-red-600"
+            onClick={confirmToggleBlockedStatus}
+          >
+            Confirm
+          </button>
+          <button
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            onClick={closeConfirmModal}
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

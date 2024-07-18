@@ -9,7 +9,7 @@ export const signupUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await axios.post('http://localhost:5000/api/users/signup', userData );
-      return response.data; // Ensure this contains the user object with email
+      return response.data; 
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -19,10 +19,13 @@ export const signupUser = createAsyncThunk(
 export const GoogleAuth = createAsyncThunk(
   'auth/GoogleAuth',
   async (userData, { rejectWithValue }) => {
-    console.log("/./././././",userData);
     try {
       const response = await axios.post('http://localhost:5000/api/users/googleAuth', userData );
-      return response.data; // Ensure this contains the user object with email
+      Cookies.set('token',response.data.response.token)
+      Cookies.set('refreshToken',response.data.response.refreshToken)
+      
+      console.log("Auth Slice",response);
+      return response.data; 
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -36,9 +39,9 @@ export const loginUser = createAsyncThunk(
       const response = await authService.login(userData)
       console.log("Login Slice response", response);
       Cookies.set('token',response.data.response.token)
-      // if(userData.is_blocked === true){
-      //   throw new Error('Account is blocked')
-      // }
+      Cookies.set('refreshToken',response.data.response.refreshToken);
+
+
       return response.data;
     } catch (error) {
       console.log("Login slice error",error);
@@ -47,6 +50,20 @@ export const loginUser = createAsyncThunk(
   }
 )
 
+// export const loginUser = createAsyncThunk(
+//   'auth/loginUser',
+//   async (userData, { rejectWithValue }) => {
+//     try {
+//       const response = await authService.login(userData);
+//       console.log("Login Slice response", response);
+//       Cookies.set('token', response.data.response.token);
+//       return response.data;
+//     } catch (error) {
+//       console.log("Login slice error", error);
+//       return rejectWithValue(error.response ? error.response.data : error.message);
+//     }
+//   }
+// );
 
 
 export const clearUser = createAsyncThunk(
@@ -56,6 +73,8 @@ export const clearUser = createAsyncThunk(
     Cookies.remove('token')
   }
 )
+
+
 
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
@@ -81,9 +100,10 @@ const authSlice = createSlice({
       state.user = null;
       state.loading = false,
       state.error = null
+
     },
     clearError(state) {
-      state.error = null; // Resets the error state to null
+      state.error = null; 
     },
   },
   extraReducers: (builder) => {
@@ -131,5 +151,9 @@ const authSlice = createSlice({
 });
 
 export const { clearError, logoutUser } = authSlice.actions;
-export const selectUser = (state) => state.user
-export default authSlice.reducer;
+export const selectUser = (state) => state.auth.user
+console.log(selectUser,"👍");
+export default authSlice.reducer; 
+
+
+

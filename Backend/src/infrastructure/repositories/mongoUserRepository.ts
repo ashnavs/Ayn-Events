@@ -3,11 +3,15 @@ import { IUser } from "../../domain/entities/types/userType";
 import OTPModel from "../database/dbmodel/otpModel";
 import { Encrypt } from "../../domain/helper/hashPassword";
 import { Vendor } from "../database/dbmodel/vendorModel";
+import { Service } from "../database/dbmodel/serviceModel";
+import Report from "../database/dbmodel/reportModel";
 
 
 export const getUserbyEMail = async (email:string)=> {
     return await Users.findOne({email:email})
 }
+
+
 
 export const checkExistingUser = async(email:string, name:string) => {
     const existingUser = await Users.findOne({ $and: [{email:email},{name:name}]})
@@ -15,7 +19,6 @@ export const checkExistingUser = async(email:string, name:string) => {
 }
 
 export const createUser = async (userData: IUser, hashedPassword:string): Promise<IUser> => {
-    // return await userModel.create(user);
     console.log("saved user",userData);
     if (!userData.email || !userData.name) {
         throw new Error("Email and name are required");
@@ -99,4 +102,13 @@ export const getStatus = async (id:string)=>{
  console.log(user)
  return user
 }
+
+export const getServices = async() => {
+  return await Service.find()
+}
+
+
+
+
+
 

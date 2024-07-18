@@ -1,19 +1,20 @@
+import { log } from "console";
 
 const jwt = require ('jsonwebtoken')
 const SECRET_KEY = "YOUR_SECRET_KEY"; 
+const REFRESH_SECRET_KEY = "REFRESH_SECRET_KEY"
 
-export const generateToken = (user: string, email: string): string => {
-    return jwt.sign({user: user, email: email }, SECRET_KEY, {
-        expiresIn: '1h'
+export const generateToken = (user: string, email: string, role:string) => {
+    const token = jwt.sign({user: user, email: email, role:role }, SECRET_KEY, {
+        expiresIn: '2h'
     });
-};
 
-
-export const generateTokenVendor = (vendor: string, email: string): string => {
-    return jwt.sign({ vendor: vendor, email: email }, SECRET_KEY, {
-        expiresIn: '1h'
+    const refreshToken = jwt.sign({user: user, email: email, role:role }, REFRESH_SECRET_KEY, {
+        expiresIn: '5d',
     });
+
+    
+
+    return {token,refreshToken}
 };
-export const verifyToken = (token: string): any => {
-    return jwt.verify(token, SECRET_KEY);
-};
+

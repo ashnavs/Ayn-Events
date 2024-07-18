@@ -6,6 +6,7 @@ import connectDB from './infrastructure/config/db';
 import userRoutes from './interfaces/routes/userRoute';
 import adminRoutes from './interfaces/routes/adminRoute';
 import vendorRouter from './interfaces/routes/vendorRoute';
+import cookieParser from 'cookie-parser'
 
 dotenv.config();
 connectDB();
@@ -20,6 +21,8 @@ const corsOptions = {
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'], 
+  credentials: true, // This line is important for allowing cookies
+
 };
 
 
@@ -28,6 +31,7 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 
 app.use(session({

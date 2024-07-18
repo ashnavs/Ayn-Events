@@ -22,7 +22,7 @@ const License = () => {
       issueDate: null,
       expiryDate: null,
       licenseDocument: null,
-      logo: null, // New logo field
+      logo: null, 
     },
     validationSchema: Yup.object({
       licenseNumber: Yup.string().required('License number is required'),
@@ -30,7 +30,7 @@ const License = () => {
       issueDate: Yup.date().required('Issue date is required'),
       expiryDate: Yup.date().required('Expiry date is required'),
       licenseDocument: Yup.mixed().required('License document is required'),
-      logo: Yup.mixed().required('Logo is required'), // New logo validation
+      logo: Yup.mixed(), 
     }),
     onSubmit: async (values) => {
       const formData = new FormData();
@@ -39,15 +39,13 @@ const License = () => {
       formData.append('issueDate', values.issueDate.toISOString());
       formData.append('expiryDate', values.expiryDate.toISOString());
       formData.append('licenseDocument', values.licenseDocument);
-      formData.append('logo', values.logo); // Append logo file
+      formData.append('logo', values.logo); 
 
       try {
         await dispatch(uploadLicense(formData));
-        // After successful upload, navigate to success page
         navigate('/vendor/success');
       } catch (error) {
         console.error('Error uploading license:', error);
-        // Handle error state or display error message
       }
     },
   });
@@ -88,7 +86,7 @@ const License = () => {
               value={email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              readOnly // Make the email field read-only
+              readOnly 
               className={`${inputClassNames} bg-gray-100`}
             />
             {formik.touched.email && formik.errors.email ? (

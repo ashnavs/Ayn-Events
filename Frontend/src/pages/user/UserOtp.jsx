@@ -21,7 +21,7 @@ const UserOtp = () => {
   })
  
 
-  const [timer, setTimer] = useState(60); // Initial timer set to 60 seconds
+  const [timer, setTimer] = useState(60); 
   const [isResendEnabled, setIsResendEnabled] = useState(false);
 
   const handleSubmit = async (e) => {

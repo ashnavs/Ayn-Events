@@ -4,72 +4,15 @@ import { createVendor,verifyVendorDb,getVendorbyEmail,getVendor,saveLicense,getV
 import { getStoredOTP,saveOtp } from "../../../infrastructure/repositories/mongoUserRepository";
 import sendOTPEmail from "../../../utils/emailUtils";
 import { generateOTP } from "../../../utils/otpUtils";
-import { generateTokenVendor } from "../../helper/jwtHelper";
+import { generateToken } from "../../helper/jwtHelper";
 import { uploadToS3 } from "../../../utils/s3Uploader";
-// import { License } from "../../../infrastructure/database/dbmodel/licenceModel";
 import { LicenseDataRequest, LicenseDataResponse  } from "../../entities/types/licenceType";
 import { log } from "console";
+import Post from "../../../infrastructure/database/dbmodel/postModel";
 
 
 export default{
-    // registerVendor: async (vendorData: IVendor) => {
-    //     console.log('Vendor data:', vendorData);
-
-    //     try {
-    //         if (!vendorData.email || !vendorData.name) {
-    //             throw new Error('Vendor data is undefined');
-    //         }
-
-    //         const existingVendor = await getVendorbyEmail(vendorData.email);
-    //         console.log('Existing Vendor:', existingVendor);
-
-    //         if (existingVendor?.is_verified) {
-    //             throw new Error('Vendor already exists');
-    //         }
-
-    //         if (existingVendor?.is_verified === false && existingVendor?.otp_verified === false) {
-    //             console.log('Generating OTP...');
-    //             const otp = generateOTP();
-    //             console.log('Generated OTP:', otp);
-
-    //             const generatedAt = Date.now();
-    //             console.log('Sending OTP email...');
-    //             await sendOTPEmail(vendorData.email, otp, vendorData.name);
-
-    //             console.log('Saving OTP...');
-    //             const savedOtp = await saveOtp(vendorData.email, otp, generatedAt);
-
-    //             console.log('OTP saved successfully:', savedOtp);
-
-    //             return { message: 'OTP generated successfully', otpGenerated: true };
-    //         }
-
-    //         if (existingVendor?.is_verified === false && existingVendor?.otp_verified === true) {
-
-    //             const getLicense = await getVendorLicense(vendorData.email);
-    //             console.log('Vendor License:', getLicense);
-
-    //             if (getLicense?.email === vendorData.email) {
-    //                 // Show success page instead of license upload page
-    //                 return { message: 'Your license is under verification. Please wait for approval.', redirectTo: '/vendor/success' };
-    //             }
-    //             console.log('Redirecting to license upload...');
-    //             return { message: 'Registration success 111111', redirectTo: '/vendor/uploadlicense' };
-                
-    //         }
-
-    //         const password = vendorData.password as string;
-    //         const hashedPassword = await Encrypt.cryptPassword(password);
-    //         const savedVendor = await createVendor(vendorData, hashedPassword);
-    //         console.log('Saved Vendor:', savedVendor);
-
-    //         return { message: 'Vendor registered successfully', vendor: savedVendor };
-    //     } catch (error: any) {
-    //         console.error('Error during vendor registration:', error);
-    //         throw new Error(error.message);
-    //     }
-    // }
-    
+   
   
 
    registerVendor : async (vendorData: IVendor) => {
@@ -80,12 +23,10 @@ export default{
                 throw new Error('Vendor data is incomplete');
             }
     
-            // Check if vendor already exists
             const existingVendor = await getVendorbyEmail(vendorData.email);
             console.log('Existing Vendor:', existingVendor);
     
             if (existingVendor) {
-                // Vendor already exists logic
                 if (existingVendor.is_verified) {
                     throw new Error('Vendor already exists');
                 }
@@ -109,7 +50,6 @@ export default{
                     console.log('Vendor License:', getLicense);
     
                     if (getLicense?.email === vendorData.email) {
-                        // Show success page instead of license upload page
                         return { message: 'Your license is under verification. Please wait for approval.', redirectTo: '/vendor/success' };
                     }
                     console.log('Redirecting to license upload...');
@@ -120,7 +60,6 @@ export default{
                 }
             }
     
-            // If vendor doesn't exist, register as a new vendor
             console.log('Generating OTP...');
             const otp = generateOTP();
             console.log('Generated OTP:', otp);
@@ -133,10 +72,8 @@ export default{
             const savedOtp = await saveOtp(vendorData.email, otp, generatedAt);
             console.log('OTP saved successfully:', savedOtp);
     
-            // Encrypt password
             const hashedPassword = await Encrypt.cryptPassword(vendorData.password);
     
-            // Create vendor in database
             const savedVendor = await createVendor({ ...vendorData },hashedPassword);
             console.log('Saved Vendor:', savedVendor);
     
@@ -198,12 +135,13 @@ export default{
           throw new Error('Account is not verified')
         }
 
-        // if(!existingVendor.is_blocked){
-        //     throw new Error('Account is blocked')
-        //   }
+        if(existingVendor.is_blocked){
+            throw new Error('Account is blocked')
+          }
         
-        
-        const token = await generateTokenVendor(existingVendor.id , email)
+        const role = 'vendor'
+        const token = await generateToken(existingVendor.id , email,role)
+        log("tokenvendor",token)
         const vendor = {
             id:existingVendor.id,
             name:existingVendor.name,
@@ -248,6 +186,24 @@ export default{
             }
         } catch (error:any) {
             throw new Error('Failed to resend otp')
+        }
+      },
+      createPost: async(postData:{vendorId:string,description:string, image:Express.Multer.File}) => {
+        try {
+            const {Location} = await uploadToS3(postData.image);
+
+            const newPost  = new Post({
+                vendorId:postData.vendorId,
+                description:postData.description,
+                image:Location,
+            })
+
+            const savedPost = await newPost.save();
+
+            return savedPost
+        } catch (error) {
+            console.error('Error in createPost:', error);
+          throw error;
         }
       }
       

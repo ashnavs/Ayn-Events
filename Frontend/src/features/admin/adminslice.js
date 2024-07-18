@@ -2,13 +2,14 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import adminService from './adminService';
+import axiosInstance from '../../services/axiosInstance';
 
 export const loginAdmin = createAsyncThunk(
   'admin/loginAdmin',
   async (adminData, { rejectWithValue }) => {
     try {
       const response = await adminService.adminLogin(adminData);
-      Cookies.set('admintoken', response.response.token);
+      Cookies.set('admintoken', response.response.token.token);
       return response;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -26,10 +27,24 @@ export const toggleUserStatus = createAsyncThunk('admin/toggleUserStatus', async
   return response.data;
 });
 
-export const addService = createAsyncThunk('admin/addService', async (formData) => {
-  const response = await axios.post('http://localhost:5000/api/admin/addservice', formData);
-  console.log(response);
-  return response.data;
+// export const addService = createAsyncThunk('admin/addService', async (formData) => {
+//   const response = await axiosInstance.post('/addservice', formData);
+//   console.log(response);
+//   return response.data;
+// });
+
+export const addService = createAsyncThunk('admin/addService', async (formData, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.post('/addservice', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response.data);
+  }
 });
 
 export const clearAdmin = createAsyncThunk(
@@ -43,7 +58,7 @@ export const clearAdmin = createAsyncThunk(
 const adminSlice = createSlice({
   name: 'admin',
   initialState: {
-    admin: [], // Initialize as an array
+    admin: [], 
     status: 'idle',
     error: null,
   },

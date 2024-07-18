@@ -14,7 +14,7 @@ const authPersistConfig = {
 const adminPersistConfig = {
   key: 'admin',
   storage,
-};
+}; 
 
 const vendorPersistConfig = {
   key: 'vendor',

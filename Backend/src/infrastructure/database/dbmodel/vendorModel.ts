@@ -12,7 +12,7 @@ export interface VendorDocument extends Document {
     coverpicture: string;
     about: string;
     //review here
-    vendorType: string;
+    service: string;
     is_verified: boolean;
     is_blocked: boolean;
     total_bookings: number;
@@ -32,7 +32,7 @@ export interface VendorDocument extends Document {
     logo: { type: String },
     coverpicture: { type: String },
     about: { type: String },
-    vendorType: { type: String },
+    service: { type: String },
     is_verified: { type: Boolean , default:false},
     is_blocked: { type: Boolean ,default:false},
     total_bookings: { type: Number },

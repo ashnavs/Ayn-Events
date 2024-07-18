@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { loginVendor } from '../../features/vendor/vendorSlice'; // Adjust the path as necessary
+import { loginVendor } from '../../features/vendor/vendorSlice'; 
 
 const Login = () => {
   const dispatch = useDispatch();

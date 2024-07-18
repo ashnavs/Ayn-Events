@@ -6,20 +6,22 @@ import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
-import { loginUser, clearError } from '../../features/auth/authSlice';
-import { auth, provider, signInWithPopup } from '../../firebase/firebase';
+import { loginUser, clearError, GoogleAuth } from '../../features/auth/authSlice';
+import { auth, provider, signInWithPopup  } from '../../firebase/firebase';
+import { GoogleAuthProvider } from 'firebase/auth';
 
 function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error ,user } = useSelector((state) => state.auth);
-  console.log(user);
+console.log("Auth state:", useSelector((state) => state.auth)); // Log entire state
+
 
   useEffect(()=>{
-    if(user){
+    if(user && user.is_blocked === false){
       navigate('/home')
     }
-  })
+  }, [user, navigate])
 
   const validationSchema = Yup.object().shape({
     email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -29,26 +31,44 @@ function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      const credential = provider.credential(result.credential.idToken);
-      const token = credential.accessToken;
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const idToken = credential.accessToken;
       const user = result.user;
 
-      dispatch(loginUser({ email: user.email })).then((response) => {
-        if (response.meta.requestStatus === 'fulfilled') {
-          toast.success('User login success');
-          navigate('/home');
-        } else {
-          toast.error(response.payload.message || 'Login failed');
-        }
-      }).catch((err) => {
-        console.error('Error during dispatch:', err);
-      });
+      const userData = {
+        idToken,
+        email: user.email,
+        name: user.displayName,
+        // Add any additional user data you need
+      };
+
+      dispatch(GoogleAuth(userData))
+        .then((response) => {
+          if (response.meta.requestStatus === 'fulfilled') {
+            const userId = response.payload.response.user?.id;
+            if (userId) {
+              console.log('Login successful. User ID:', userId);
+              toast.success('User signed up with Google');
+              navigate('/home');
+            } else {
+              console.error('User ID is undefined:', response.payload.user);
+              toast.error('Google signup failed');
+            }
+          } else {
+            toast.error('Google signup failed');
+          }
+        })
+        .catch((error) => {
+          console.error('Error dispatching Google login:', error);
+          toast.error('Google login failed');
+        });
     } catch (error) {
       console.error('Error during Google login:', error);
       toast.error('Google login failed');
     }
   };
 
+ 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await dispatch(loginUser(values)).unwrap();

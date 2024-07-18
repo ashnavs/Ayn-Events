@@ -7,6 +7,9 @@ import sendOTPEmail from "../../../utils/emailUtils";
 import { getStoredOTP } from "../../../infrastructure/repositories/mongoUserRepository";
 import { generateToken } from "../../helper/jwtHelper";
 import { getVendor } from "../../../infrastructure/repositories/mongoVendorrepository";
+import { createReport } from "../../../infrastructure/repositories/mongoReportRepository";
+import { log } from "console";
+import { createReview } from "../../../infrastructure/repositories/mongoReviewRepository";
 
 
 export default {
@@ -84,19 +87,23 @@ export default {
         if(existingUser.is_verified == false){
             throw new Error(`User is not verified.Register!`)
         }
+        const role = 'user'
 
-        const token = await generateToken(existingUser.id , email)
+        const {token,refreshToken} = await generateToken(existingUser.id , email ,role)
         const user = {
             id:existingUser.id,
             name:existingUser.name,
-            email:existingUser.email
+            email:existingUser.email,
+            isBlocked:existingUser.is_blocked
         }
-        return {token,user}
+        return {token,user,refreshToken}
     },
 
     googleUser:async(userData:IUser) => {
         try {
             const savedUser = await  googleUser(userData)
+            console.log("saveduser:",savedUser);
+            
         if(savedUser){
             const user = {
                 id: savedUser._id,
@@ -104,12 +111,16 @@ export default {
                 email:savedUser.email
             }
 
+            console.log("User Object:", user);
+
+
             if (!savedUser._id || !savedUser.email) {
                 throw new Error("User ID or email is undefined");
             }
-
-            let token = generateToken(savedUser.id,savedUser.email)
-            return {user,token}
+            const role = 'user'
+            let {token,refreshToken} = generateToken(savedUser.id,savedUser.email,role)
+            log(token,refreshToken,"refresh")
+            return {user,token,refreshToken}
         }
         } catch (error:any) {
             console.error(error.message)
@@ -147,7 +158,24 @@ export default {
         try {
             return await getVendor(id)
         } catch (error) {
-            
+            throw new Error('Failed to get vendor')
+        }
+    },
+    reportVendor:async(vendorId:string, reason:string) => {
+        try {
+            const report = await createReport(vendorId,reason)
+            return report
+        } catch (error) {
+            console.error('Error in user interactor:', error);
+            throw new Error('Error processing report');        }
+    },
+    createReview: async(reviewData:{vendorId:string,userId:string,review:string,rating:number}) => {
+        try {
+            const reviews = await createReview(reviewData);
+            return reviews
+        } catch (error) {
+            console.error('Error in user interactor:', error);
+            throw new Error('Error processing review'); 
         }
     }
     

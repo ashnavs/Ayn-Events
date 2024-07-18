@@ -3,6 +3,8 @@
 import AddService from '../../pages/admin/AddService';
 import AdminLogin from '../../pages/admin/AdminLogin';
 import Dashboard from '../../pages/admin/Dashboard'
+import ReportDetail from '../../pages/admin/ReportDetails';
+import ReportList from '../../pages/admin/ReportList';
 import UserList from '../../pages/admin/UserList'
 import VendorDetail from '../../pages/admin/VendorDetail';
 import VendorList from '../../pages/admin/VendorList';
@@ -28,6 +30,8 @@ const AdminRoutes = () => {
                     <Route path='/vendorverify' element={<VendorVerify />} />
                     <Route path='/addservice' element={<AddService />} />
                     <Route path='/vendor/:vendorId' element={<VendorDetail />} />
+                    <Route path='/report' element={<ReportList />} />
+                    <Route path="/reports/:id" element={<ReportDetail />} />
 
 
                 </Route>

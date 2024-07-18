@@ -1,5 +1,5 @@
 import React from 'react';
-import './LandingPage.scss'; // Import the SCSS file
+import './LandingPage.scss'; 
 
 function LandingPage() {
 

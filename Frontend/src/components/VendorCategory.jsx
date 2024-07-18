@@ -8,9 +8,8 @@ const VendorCategory = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axiosInstanceUser.get('/category'); // Replace with your backend API URL
-        console.log(response.data.response, "👌"); // Log the response to ensure it's an array
-        setCategories(response.data.response); // Set the correct part of the response
+        const response = await axiosInstanceUser.get('/category'); 
+        setCategories(response.data.response); 
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
