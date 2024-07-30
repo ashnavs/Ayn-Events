@@ -77,11 +77,9 @@ export const protectAdmin = async (req: Request, res: Response, next: NextFuncti
 
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { user: string, email: string, role: string };
-            log(decoded, "decodedvendor     "); 
 
             req.admin = decoded;
             const adminId = req.admin.user;
-            log(adminId, "adminId"); 
 
             const admin = await Admin.findById(adminId);
             log('admin found:', admin); 

@@ -130,7 +130,7 @@ export const protectVendor = async (req: Request, res: Response, next: NextFunct
             }
         }
     } else {
-        log('No token provided');
+        log('No token provided'); 
         res.status(401).json({ message: "Not authorized, no token" });
     }
 };

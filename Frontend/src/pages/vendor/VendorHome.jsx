@@ -34,7 +34,7 @@ function VendorHome() {
   return (
     <div>
       <VendorHeader />
-      <VendorLogo />
+      <VendorLogo vendorId={vendorId} />
       <ImageGrid vendorId={vendorId} />
     </div>
   );

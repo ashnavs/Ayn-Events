@@ -12,13 +12,30 @@ export interface VendorDocument extends Document {
     coverpicture: string;
     about: string;
     //review here
-    service: string;
+    service: string[];
     is_verified: boolean;
     is_blocked: boolean;
     total_bookings: number;
     otp_verified:boolean;
 
 
+  }
+
+  interface VendorQuery {
+    service?: string;
+    city?: string;
+  }
+
+  export interface UpdateVendorData {
+    name?: string;
+    city?: string;
+    service?: string[];
+  }
+
+  export interface UpdateVendorData {
+    name?: string;
+    city?: string;
+    service?: string[];
   }
   
   const vendorSchema = new Schema<VendorDocument>({
@@ -32,7 +49,7 @@ export interface VendorDocument extends Document {
     logo: { type: String },
     coverpicture: { type: String },
     about: { type: String },
-    service: { type: String },
+    service: [{ type: String , required:true}],
     is_verified: { type: Boolean , default:false},
     is_blocked: { type: Boolean ,default:false},
     total_bookings: { type: Number },

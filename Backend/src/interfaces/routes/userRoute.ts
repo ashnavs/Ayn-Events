@@ -21,6 +21,11 @@ userRouter.post('/report',userController.reportVendor);
 userRouter.get('/getposts/:vendorId',userController.getPosts)
 userRouter.post('/reviews',userController.createReview)
 userRouter.get('/getreviews',userController.getReviews)
+userRouter.post('/bookings',userController.bookEvents)
+userRouter.post('/checkAvailability',userController.checkAvailability)
+userRouter.get('/bookings', userController.getBookings)
+userRouter.get('/vendors',userController.getVendors)
+
 
 
 

@@ -8,6 +8,7 @@ import { fetchCities } from '../../services/cityService';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
+import Select from 'react-select';
 
 const VendorSignup = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const VendorSignup = () => {
       try {
         const serviceResponse = await axios.get('http://localhost:5000/api/vendor/service-types');
         const services = serviceResponse.data;
-        setServices(services);
+        setServices(services.map(service => ({ label: service, value: service })));
 
         const cityList = await fetchCities();
         setCities(cityList);
@@ -41,7 +42,7 @@ const VendorSignup = () => {
     name: Yup.string().required('Name is required'),
     email: Yup.string().email('Invalid email address').required('Email is required'),
     city: Yup.string().required('City is required'),
-    service: Yup.string().required('Vendor type is required'),
+    services: Yup.array().min(1, 'At least one service is required').required('Service is required'),
     password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
     confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Confirm password is required'),
   });
@@ -49,6 +50,7 @@ const VendorSignup = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await dispatch(signupVendor(values));
+      console.log(response,"✅✅✅✅")
       console.log(response.payload.vendor.redirectTo, "😘😘😘😘😘")
       if (response.payload.vendor && response.payload.vendor.redirectTo) {
         navigate(response.payload.vendor.redirectTo, { state: { email: values.email } });
@@ -94,7 +96,7 @@ const VendorSignup = () => {
             name: '',
             email: '',
             city: '',
-            service: '',
+            services: [],
             password: '',
             confirmPassword: '',
           }}
@@ -141,25 +143,15 @@ const VendorSignup = () => {
                 <ErrorMessage name="city" component="div" className="text-red-500 text-sm mt-1" />
               </div>
               <div className="mb-4">
-                <Field
-                  as="select"
-                  name="service"
-                  className="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:border-[#a39f74d6]"
-                >
-                  <option value="" disabled>
-                    {loading ? 'Loading services...' : 'Select your service type'}
-                  </option>
-                  {error ? (
-                    <option disabled>{error}</option>
-                  ) : (
-                    services.map((service, index) => (
-                      <option key={index} value={service}>
-                        {service}
-                      </option>
-                    ))
-                  )}
-                </Field>
-                <ErrorMessage name="service" component="div" className="text-red-500 text-sm mt-1" />
+                <Select
+                  isMulti
+                  name="services"
+                  options={services}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  onChange={selectedOptions => setFieldValue('services', selectedOptions.map(option => option.value))}
+                />
+                <ErrorMessage name="services" component="div" className="text-red-500 text-sm mt-1" />
               </div>
               <div className="mb-4 mt-4">
                 <Field
@@ -180,23 +172,17 @@ const VendorSignup = () => {
                 <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
               </div>
               <button
-                className="w-full px-4 py-2 bg-[#a39f74] text-white font-semibold rounded-lg shadow-md hover:bg-[#a39f74d6] focus:outline-none focus:border-[#a39f74d6]"
+                className="w-full px-4 py-2 text-lg font-semibold text-white bg-gray-800 rounded-lg hover:bg-gray-900 focus:outline-none focus:bg-gray-900"
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                {isSubmitting ? 'Signing up...' : 'Signup'}
               </button>
             </Form>
           )}
         </Formik>
-        <div className="mt-4 text-center">
-          <p className="text-gray-600">
-            Already have an account?{' '}
-            <a href="/vendor/login" className="text-[#a39f74] hover:underline">
-              Log in
-            </a>
-          </p>
-        </div>
+        {loading && <div className="text-center">Loading...</div>}
+        {error && <div className="text-center text-red-500">{error}</div>}
       </div>
     </div>
   );

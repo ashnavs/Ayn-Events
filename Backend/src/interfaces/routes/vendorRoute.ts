@@ -32,6 +32,8 @@ vendorRouter.get('/service-types', vendorController.getServices);
 vendorRouter.get('/:id',vendorController.getVendorById);
 vendorRouter.post('/posts',upload,vendorController.createPost)
 vendorRouter.get('/getposts/:vendorId',vendorController.getPosts)
+vendorRouter.put('/:vendorId',vendorController.updateVendor)
+
 
 
 

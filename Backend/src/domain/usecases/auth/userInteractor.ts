@@ -10,6 +10,14 @@ import { getVendor } from "../../../infrastructure/repositories/mongoVendorrepos
 import { createReport } from "../../../infrastructure/repositories/mongoReportRepository";
 import { log } from "console";
 import { createReview } from "../../../infrastructure/repositories/mongoReviewRepository";
+import { IBooking } from "../../../infrastructure/database/dbmodel/eventBookingModel";
+import { saveBooking , checkAvailabilityByDate } from "../../../infrastructure/repositories/mongoBookingRepository";
+
+function createError(message: string, status: number) {
+    const error: any = new Error(message);
+    error.status = status;
+    return error;
+}
 
 
 export default {
@@ -98,6 +106,8 @@ export default {
         }
         return {token,user,refreshToken}
     },
+   
+    
 
     googleUser:async(userData:IUser) => {
         try {
@@ -116,6 +126,9 @@ export default {
 
             if (!savedUser._id || !savedUser.email) {
                 throw new Error("User ID or email is undefined");
+            }
+            if (savedUser.is_blocked) {
+                throw createError('Account is Blocked', 403); // Forbidden
             }
             const role = 'user'
             let {token,refreshToken} = generateToken(savedUser.id,savedUser.email,role)
@@ -164,6 +177,7 @@ export default {
     reportVendor:async(vendorId:string, reason:string) => {
         try {
             const report = await createReport(vendorId,reason)
+            console.log(report,"rrrr")
             return report
         } catch (error) {
             console.error('Error in user interactor:', error);
@@ -177,8 +191,19 @@ export default {
             console.error('Error in user interactor:', error);
             throw new Error('Error processing review'); 
         }
-    }
-    
+    },
+    checkBookingAvailability : async (date: Date, vendorId: string): Promise<boolean> => {
+        const existingBooking = await checkAvailabilityByDate(date, vendorId);
+        return !existingBooking;
+      },
+      
+    addNewBooking : async (bookingData: IBooking): Promise<IBooking> => {
+        log('inetrrt')
+        const newBooking = await saveBooking(bookingData);
+        log(newBooking,'ineraaaaaaac')
+        return newBooking;
+    },
+
 
 
 }

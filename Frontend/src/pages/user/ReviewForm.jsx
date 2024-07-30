@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import axiosInstanceUser from '../../services/axiosInstanceUser';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../features/auth/authSlice';
+import { toast } from 'sonner';
 
 const ReviewForm = ({ vendorId }) => {
-    const user = useSelector(selectUser)
-    console.log(user);
+  const user = useSelector(selectUser);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
 
@@ -14,16 +14,17 @@ const ReviewForm = ({ vendorId }) => {
   const submitReview = async (vendorId, userId, review, rating) => {
     try {
       const response = await axiosInstanceUser.post('/reviews', { vendorId, userId, review, rating });
+      toast.success('Review Submitted');
       console.log('Review and rating submitted successfully:', response.data);
     } catch (error) {
+      toast.error('Failed to submit review and rating');
       console.error('Failed to submit review and rating:', error);
     }
   };
 
-  // Usage in your form submission handler
   const handleSubmit = (e) => {
     e.preventDefault();
-    const userId = user.id;  // Replace with actual userId based on your authentication mechanism
+    const userId = user.id;  
     submitReview(vendorId, userId, review, rating);
     setReview('');
     setRating(0);

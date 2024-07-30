@@ -1,21 +1,37 @@
-import { Schema, model, Document } from "mongoose";
+// import mongoose, { Schema, Document } from 'mongoose';
 
-export interface ReviewModel  {
-  vendorId: string;
-  userId: string;
-  review: string;
+// interface IReport extends Document {
+//     vendorId: string;
+//     reason: string;
+//     date: Date;
+// }
+
+// const reportSchema: Schema = new Schema({
+//     vendorId: { type: String, required: true },
+//     reason: { type: String, required: true },
+//     date: { type: Date, required: true }
+// });
+
+// const Report = mongoose.model<IReport>('Report', reportSchema);
+
+// export default Report;
+
+import mongoose, { Schema, Document } from 'mongoose';
+import { VendorDocument } from './vendorModel'; // Adjust the import path as needed
+
+interface IReport extends Document {
+    vendorId: Schema.Types.ObjectId;
+    reason: string;
+    date: Date;
 }
 
-
-const reviewSchema = new Schema({
-  vendorId: { type: Schema.Types.ObjectId, ref: 'Vendor', required: true },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  review: { type: String, required: true },
-}, {
-  timestamps: true, 
+const reportSchema: Schema = new Schema({
+    vendorId: { type: Schema.Types.ObjectId, ref: 'Vendor', required: true },
+    reason: { type: String, required: true },
+    date: { type: Date, required: true }
 });
 
+const Report = mongoose.model<IReport>('Report', reportSchema);
 
-const Review = model<ReviewModel>('Review', reviewSchema);
+export default Report;
 
-export default Review;

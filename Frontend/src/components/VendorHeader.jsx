@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { clearVendor ,checkAuth} from '../features/vendor/vendorSlice';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import { Link } from 'react-router-dom';
 
 
 
@@ -30,9 +31,9 @@ const VendorHeader = () => {
         </span>
       </div>
       <nav className="flex items-center">
-        <a href="/" className="text-white mr-4 hover:text-gray-200 flex items-center">
+      <Link to="/vendor/profile" className="text-white mr-4 hover:text-gray-200 flex items-center">
           <span className="ml-2">Home</span>
-        </a>
+        </Link>
         <div className="relative mr-4">
           <button className="focus:outline-none">
             <FiBell className="h-6 w-6 text-white" />

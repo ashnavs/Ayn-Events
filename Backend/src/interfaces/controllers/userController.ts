@@ -12,6 +12,10 @@ import { Users } from "../../infrastructure/database/dbmodel/userModel";
 import { Vendor } from "../../infrastructure/database/dbmodel/vendorModel";
 import { getPosts } from "../../infrastructure/repositories/mongoPostRepository";
 import { getReviewsAndRatings } from "../../infrastructure/repositories/mongoReviewRepository";
+import { saveBooking } from "../../infrastructure/repositories/mongoBookingRepository";
+import eventBookingModel from "../../infrastructure/database/dbmodel/eventBookingModel";
+import { VendorQuery } from "../../domain/entities/types/vendorTypes";
+import { getVendorsWithService } from "../../infrastructure/repositories/mongoVendorrepository";
 
 
 
@@ -36,8 +40,6 @@ export default {
 
 
   verifyOTP: async (req: Request, res: Response) => {
-    console.log("boodddghyghsd", req.body);
-
     try {
       const response = await userInteractor.verifyUser(req.body);
       console.log("verifyOTP", response);
@@ -45,61 +47,24 @@ export default {
     } catch (error: any) {
       console.error(error.message)
       res.status(500).json({ error: error.message })
-    
+
     }
 
 
   },
-
-  // userLogin: async (req: Request, res: Response) => {
-  //   console.log(req.body);
-  //   try {
-  //     console.log(req.body);
-  //     const { email, password } = req.body
-
-  //     const response = await userInteractor.loginUser(email, password);
-  //     log(response,"😊")
-  //     const refreshToken = response.refreshToken;
-  //     log(refreshToken)
-  //     // res.cookie('refreshToken',refreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });    
-  //       console.log("response login",response);
-  //     res.status(200).json({ message: 'Login success', response })
-  //   } catch (error: any) {
-  //     console.error("Controller error:", error.message);
-  //     if(error.message === 'User is not verified'){
-  //       res.status(403).json({ message: 'User is not verified' });
-  //     }else
-  //  { res.status(500).json({ message: error.message })}
-  //   // next(error);
-  //   }
-  // },
-
-  userLogin : async (req: Request, res: Response) => {
+  userLogin: async (req: Request, res: Response) => {
     console.log(req.body);
-  
+
     try {
       const { email, password } = req.body;
-      console.log("Login request body:", req.body);
-  
-      // Call the interactor to perform login logic
       const response = await userInteractor.loginUser(email, password);
-      log("Login response:", response);
-  
-      // Extract tokens from the response
       const { token, refreshToken } = response;
-      log("Generated tokens:", { token, refreshToken });
-  
-      // Set the tokens as cookies
       res.cookie('usertoken', token, { httpOnly: true, secure: true, sameSite: 'strict' });
       res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
-  
-      console.log("Login success:", response);
-  
-      // Send success response with token data
-      res.status(200).json({ message: 'Login success',  response });
+      res.status(200).json({ message: 'Login success', response });
     } catch (error: any) {
       console.error("Controller error:", error.message);
-  
+
       if (error.message === 'User is not verified') {
         res.status(403).json({ message: 'User is not verified' });
       } else {
@@ -110,10 +75,8 @@ export default {
 
 
   googleAuth: async (req: Request, res: Response) => {
-    console.log(req.body);
     try {
       const response = await userInteractor.googleUser(req.body);
-      console.log("Google Auth Response:", response);
       res.status(200).json({ message: 'Google auth success', response })
     } catch (error: any) {
       console.log(error);
@@ -128,13 +91,11 @@ export default {
   getStatus: async (req: Request, res: Response) => {
 
     try {
-      log("call 1")
       const id = req.query.id as string
-      console.log(id)
       const response = await userInteractor.getStatus(id);
-      res.status(200).json({response})
+      res.status(200).json({ response })
     } catch (error: any) {
-      
+
       console.log(error);
       res.status(500).json(error)
     }
@@ -142,128 +103,96 @@ export default {
 
 
   },
-  resendOTP:async(req:Request, res:Response) => {
+  resendOTP: async (req: Request, res: Response) => {
     try {
 
-      const {email} = req.body
-     
+      const { email } = req.body
+
       const response = await userInteractor.otpResend(email)
-      res.status(200).json({response})
+      res.status(200).json({ response })
     } catch (error) {
       res.status(500).json(error)
     }
   },
-  checkAuth:async(req:Request, res:Response)=>{
+  checkAuth: async (req: Request, res: Response) => {
     console.log("Hellooooo");
-    
-  },
-  getVendor:async(req:Request,res:Response) => {
-   try {
-     const response = await getAllVendors()
-     console.log(response,"getvendorsverifi");
-     
-     res.status(200).json({response})
- 
-   } catch (error) {
-    res.status(500).json(error)
 
-   }
   },
-  getServiceUser:async(req:Request,res:Response) => {
-    log(req.user,'requser service')
+  getVendor: async (req: Request, res: Response) => {
+    try {
+      const response = await getAllVendors()
+      res.status(200).json({ response })
+
+    } catch (error) {
+      res.status(500).json(error)
+
+    }
+  },
+  getServiceUser: async (req: Request, res: Response) => {
+    const categoryName = req.params.name;
     try {
       const response = await getServices()
-      console.log(response,"👌");
-      
-      res.status(200).json({response})
+      console.log(response,"imgurl")
+      res.status(200).json({ response })
 
     } catch (error) {
       res.status(500).json(error)
     }
   },
-  // refreshToken:async(req:Request,res:Response) => {
-  //   try {
-  //     console.log('blah blahhhhhhhhhhhhhhhhhhhhhhhh');
-      
-  //     const refreshToken = req.cookies.refreshToken;
-  //     log(req.cookies)  
-  //     if(!refreshToken){
-  //       return res.status(401).json({message:"Refresh token not provided"})
-  //     }
-  //     const decoded = jwt.verify(refreshToken,process.env.REFRESH_SECRET_KEY!) as { userId: string, email: string , role: string };
-  //     const { token: newAccessToken, refreshToken:newRefreshToken} = generateToken(decoded.userId, decoded.email, 'user' );
-  //     res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
-  //     res.json({ accessToken: newAccessToken })
-  //   } catch (error) {
-  //     res.status(500).json({ error: (error as Error).message });
-  //   }
-  // },
 
-  refreshToken : async (req: Request, res: Response) => {
+  refreshToken: async (req: Request, res: Response) => {
     try {
-        console.log('blah blahhhhhhhhhhhhhhhhhhhhhhhh');
+      const refreshToken = req.cookies.refreshToken;
 
-        const refreshToken = req.cookies.refreshToken;
-        log(req.cookies);
 
-        if (!refreshToken) {
-            return res.status(401).json({ message: "Refresh token not provided" });
-        }
+      if (!refreshToken) {
+        return res.status(401).json({ message: "Refresh token not provided" });
+      }
 
-        const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY!) as { user: string, email: string, role: string };
-        log("decoded",decoded)
-        const user = await getUserbyEMail(decoded.email)
-        const { token: newAccessToken, refreshToken: newRefreshToken } = generateToken(user?.id, decoded.email, 'user');
-        log("decoded details",decoded.user, decoded.email, 'user')
-        res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
-        res.json({ accessToken: newAccessToken });
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY!) as { user: string, email: string, role: string };
+      const user = await getUserbyEMail(decoded.email)
+      const { token: newAccessToken, refreshToken: newRefreshToken } = generateToken(user?.id, decoded.email, 'user');
+      res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.json({ accessToken: newAccessToken });
     } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: (error as Error).message });
     }
-},
-  getLicenseByVendorEmail : async (req: Request, res: Response) => {
-    log("🤷‍♀️licence")
+  },
+  getLicenseByVendorEmail: async (req: Request, res: Response) => {
     const { email } = req.params;
-    log(email)
-  
-
     try {
       const license = await LicenseModel.findOne({ email }).exec();
       if (!license) {
         return res.status(404).json({ message: 'License not found' });
       }
-  
+
       res.status(200).json(license);
-    } catch (error:any) {
+    } catch (error: any) {
       res.status(500).json({ message: 'Error fetching license', error: error.message });
     }
   },
   getVendorDetails: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      console.log('Fetching vendor details for ID:', id); 
       const vendor = await Vendor.findById(id);
-      console.log('Fetched vendor:', vendor); 
-  
       if (!vendor) {
         return res.status(404).json({ message: 'Vendor not found' });
       }
-  
+
       res.status(200).json(vendor);
     } catch (error: any) {
       console.error('Error fetching vendor:', error);
       res.status(500).json({ message: 'Error fetching vendor', error: error.message });
     }
   },
-  reportVendor: async(req:Request, res:Response) => {
+  reportVendor: async (req: Request, res: Response) => {
     try {
-      const {vendorId,reason} = req.body
-      log(req.body)
-
-      await userInteractor.reportVendor(vendorId,reason)
+      const { vendorId, reason } = req.body
+      console.log(vendorId,reason,"viddd")
+      await userInteractor.reportVendor(vendorId, reason)
       return res.status(200).json({ message: 'Report submitted successfully' });
-    
-    } catch (error:any) {
+
+    } catch (error: any) {
       console.error('Error fetching report:', error);
       res.status(500).json({ message: 'Error fetching report', error: error.message });
     }
@@ -277,11 +206,10 @@ export default {
       res.status(500).json({ error: 'Failed to get post' });
     }
   },
-  createReview: async(req:Request,res:Response) => {
+  createReview: async (req: Request, res: Response) => {
     try {
-      const {vendorId,userId,review,rating} = req.body
-      log(req.body,"vvid")
-      const reviewData ={vendorId,userId,review,rating}
+      const { vendorId, userId, review, rating } = req.body
+      const reviewData = { vendorId, userId, review, rating }
       const reviews = await userInteractor.createReview(reviewData)
       return res.status(200).json(reviews)
     } catch (error) {
@@ -289,17 +217,106 @@ export default {
       res.status(500).json({ message: 'Failed to submit review and rating' });
     }
   },
-  getReviews:async(req:Request,res:Response) => {
+  getReviews: async (req: Request, res: Response) => {
     try {
-      const {vendorId} = req.query as { vendorId: string };
-      log(vendorId,'vvidreviewlist')
-      const reviews = await getReviewsAndRatings(vendorId) 
-      console.log(reviews,'getrevies');
+      const { vendorId } = req.query as { vendorId: string };
+      const reviews = await getReviewsAndRatings(vendorId)
       res.status(200).json(reviews)
-      } catch (error) {
-      
+    } catch (error) {
+
     }
-  }
+  },
+  bookEvents: async (req: Request, res: Response) => {
+    try {
+
+      const bookingData = req.body;
+
+      const newBooking = await userInteractor.addNewBooking(bookingData);
+      res.status(201).json(newBooking);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+  checkAvailability: async (req: Request, res: Response) => {
+    try {
+      const { date, vendorId } = req.body;
+
+      const available = await userInteractor.checkBookingAvailability(date, vendorId);
+
+
+      res.status(200).json({ available });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+  getBookings: async (req: Request, res: Response) => {
+    try {
+      const { userId, vendorId } = req.query;
+
+      const bookings = await eventBookingModel.find({ user: userId, vendor: vendorId });
+      res.json(bookings);
+    } catch (error) {
+      console.error('Failed to fetch bookings', error);
+      res.status(500).json({ message: 'Failed to fetch bookings' })
+    }
+  },
+    // getVendors:async(req:Request,res:Response) => {
+    //   try {
+    //     const {service,city} = req.query
+    //     log(`service:${service} city:${city}`)
+
+    //     try {
+    //       const vendors = await Vendor.find({
+    //         service:service,
+    //         city:city
+    //       })
+    //       res.status(200).json(vendors)
+    //       log(vendors,"filtervendors")
+    //     } catch (error) {
+          
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to fetch vendors', error);
+    //     res.status(500).json({ message: 'Failed to fetch vendors' })
+    //   }
+    // }
+
+
+    getVendors:async (req: Request, res: Response) => {
+      try {
+        const { service, city } = req.query as VendorQuery; // Cast query to VendorQuery
+        console.log(`service: ${service} city: ${city}`); // Debug log
+    
+        const query: any = { is_verified: true, is_blocked: false }; // Use `any` type here for dynamic properties
+        if (service) query.service = service;
+        if (city) query.city = city;
+    
+        try {
+          let vendors;
+          if (!service && !city) {
+            // Fetch all vendors if no query parameters are provided
+            vendors = await getVendorsWithService();
+            log(vendors,"vvvvvv")
+          } else {
+            // Fetch vendors based on query parameters
+            vendors = await Vendor.find(query, {
+              _id: 1, name: 1, email: 1, city: 1, service: 1, is_blocked: 1
+            });
+          }
+          res.status(200).json(vendors);
+          console.log(vendors, "vendors"); // Debug log
+        } catch (error) {
+          console.error('Failed to fetch vendors', error);
+          res.status(500).json({ message: 'Failed to fetch vendors' });
+        }
+      } catch (error) {
+        console.error('Failed to fetch vendors', error);
+        res.status(500).json({ message: 'Failed to fetch vendors' });
+      }
+    }
+
+    
+
 }
 
 

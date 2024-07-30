@@ -15,6 +15,7 @@ function ReportList() {
     try {
       const response = await axiosInstance.get('/reportlist');
       setReports(response.data);
+      console.log(response.data);
       setStatus('succeeded');
     } catch (err) {
       console.error('Failed to fetch reports:', err);
@@ -35,8 +36,9 @@ function ReportList() {
     navigate(`/admin/reports/${id}`);
   };
 
-  const filteredReports = reports.filter(({ vendor }) =>
-    vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Adjust the filter logic to match the response structure
+  const filteredReports = reports.filter(({ vendorName }) =>
+    vendorName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -76,11 +78,11 @@ function ReportList() {
           ) : status === 'failed' ? (
             <p className="text-center text-red-500">{error}</p>
           ) : filteredReports.length > 0 ? (
-            filteredReports.map(({ _id, count, vendor }) => (
+            filteredReports.map(({ _id, count, vendorName }) => (
               <div key={_id} className="bg-white dark:bg-gray-700 shadow-md rounded-lg p-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-                    {vendor.name}
+                    {vendorName}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">Reports: {count}</p>
                 </div>

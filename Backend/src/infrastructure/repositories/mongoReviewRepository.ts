@@ -1,4 +1,4 @@
-import Review from "../database/dbmodel/reportModel";
+import { Review,IReview } from "../database/dbmodel/reviewModel";
 import { Rating } from "../database/dbmodel/ratingModel";
 import { log } from "console";
 
@@ -18,25 +18,71 @@ export const createReview = async(reviewData:{vendorId:string,userId:string,revi
             userId,
             rating
         })
+        
         await ratings.save()
 
         return {review:reviews, rating:ratings}
     } catch (error:any) {
         throw new Error(`Failed to report vendor: ${error.message}`)
     }
-}
+};
+
+// export const getReviewsAndRatings = async (vendorId: string) => {
+//     try {
+//         const reviews = await Review.find({ vendorId }).populate('vendorId');
+//         const ratings = await Rating.find({ vendorId });
+
+//         const combined = reviews.map(review => {
+//             const userRating = ratings.find(rating => rating.userId.toString() === review.userId.toString());
+//             return {
+//                 ...review.toObject(),
+//                 rating: userRating ? userRating.rating : null
+//             };
+//         });
+
+//         return combined;
+//     } catch (error: any) {
+//         throw new Error(`Failed to get reviews and ratings for vendor: ${error.message}`);
+//     }
+// };
+
+// export const getReviewsAndRatings = async (vendorId: string) => {
+//     try {
+//         const reviews = await Review.find({ vendorId }).populate('userId');
+
+//         const ratings = await Rating.find({ vendorId });
+
+//         // Combine reviews and ratings based on userId
+//         const combined = reviews.map(review => {
+//             const userRating = ratings.find(rating => rating.userId.toString() === review.userId.toString());
+//             return {
+//                 ...review.toObject(),
+//                 rating: userRating ? userRating.rating : null,
+//                 userName: (review.userId as any).name // Assuming 'name' exists on the populated user document
+//             };
+//         });
+
+//         console.log(combined,'combined');
+        
+
+//         return combined;
+//     } catch (error: any) {
+//         throw new Error(`Failed to get reviews and ratings for vendor: ${error.message}`);
+//     }
+// };
 
 export const getReviewsAndRatings = async (vendorId: string) => {
     try {
-        const reviews = await Review.find({ vendorId }).populate('vendorId');
+        const reviews = await Review.find({ vendorId }).populate('userId', 'name email');
         const ratings = await Rating.find({ vendorId });
 
-        // Combine reviews and ratings based on userId or any other relevant key
+        // Combine reviews and ratings based on userId
         const combined = reviews.map(review => {
-            const userRating = ratings.find(rating => rating.userId.toString() === review.userId.toString());
+            const userRating = ratings.find(rating => rating.userId.toString() === review.userId._id.toString());
             return {
                 ...review.toObject(),
-                rating: userRating ? userRating.rating : null
+                rating: userRating ? userRating.rating : null,
+                userName: review.userId.name  // Access userName directly
             };
         });
 

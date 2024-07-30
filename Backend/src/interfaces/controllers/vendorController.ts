@@ -4,9 +4,10 @@ import { log } from "console";
 import { uploadToS3 } from "../../utils/s3Uploader";
 import { LicenseDataRequest } from "../../domain/entities/types/licenceType";
 import { getServiceName, getVendorById } from "../../infrastructure/repositories/mongoAdminRepository";
-import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
+import { updateVendor } from "../../infrastructure/repositories/mongoVendorrepository";
 import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
 import { getPosts } from "../../infrastructure/repositories/mongoPostRepository";
+import { Vendor } from "../../infrastructure/database/dbmodel/vendorModel";
 
 export default{
     vendorRegister: async(req:Request , res:Response, next:NextFunction) => {
@@ -14,7 +15,7 @@ export default{
         try {
 
             const { name, email, city, vendorType, password } = req.body;
-            console.log(req.body);
+            console.log(req.body,"vendorsign");
             const vendor =  await vendorInteractor.registerVendor(req.body);
             res.status(200).json({message:'Registration success' , vendor})
         } catch (error) {
@@ -98,14 +99,21 @@ export default{
         res.status(500).json(error)
       }
     },
-    getVendorById:async(req:Request,res:Response) => {
+    getVendorById:async (req: Request, res: Response) => {
+      const vendorId = req.params.id;
+    
       try {
-        const vendors = await getAllVendors();
-        console.log(vendors,"😒");
+        const vendor = await Vendor.findById(vendorId);
+        console.log(vendor,"😯")
         
-        res.status(200).json(vendors);
-      } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch vendors' });
+        if (!vendor) {
+          return res.status(404).json({ message: 'Vendor not found' });
+        }
+    
+        res.status(200).json(vendor);
+      } catch (error) {
+        console.error('Error fetching vendor:', error);
+        res.status(500).json({ message: 'Server error' });
       }
     },
     getServices: async (req: Request, res: Response) => {
@@ -151,6 +159,32 @@ export default{
         res.status(200).json(posts);
       } catch (error) {
         res.status(500).json({ error: 'Failed to get post' });
+      }
+    },
+    // getVendors : async (req: Request, res: Response): Promise<void> => {
+    //   const { service, city } = req.query;
+    
+    //   try {
+    //     const vendors = await vendorInteractor.fetchVendorsByCategoryAndCity(service as string, city as string);
+    //     res.status(200).json(vendors);
+    //   } catch (error) {
+    //     res.status(500).json({ message: 'Error fetching vendors', error });
+    //   }
+    // }
+    updateVendor: async (req: Request, res: Response) => {
+      const { vendorId } = req.params;
+      const { name, city, service } = req.body;
+    
+      try {
+        // Pass the service data as an array of strings
+        const updatedVendor = await updateVendor(vendorId, { name, city, service });
+        if (updatedVendor) {
+          res.status(200).json({ message: 'Vendor profile updated successfully', vendor: updatedVendor });
+        } else {
+          res.status(404).json({ message: 'Vendor not found' });
+        }
+      } catch (error: any) {
+        res.status(500).json({ error: `Failed to update the vendor: ${error.message}` });
       }
     }
     

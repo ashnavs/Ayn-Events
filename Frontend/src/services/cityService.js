@@ -1,5 +1,5 @@
 import axios from 'axios';
-import axiosInstanceVendor from './axiosInstanceVenndor';
+
 
 const API_URL = 'https://countriesnow.space/api/v0.1/countries/cities';
 

@@ -8,7 +8,7 @@ export interface IVendor{
     coverpicture: string;
     about: string;
     //review here
-    service: string;
+    services: string[];
     is_verified: boolean;
     is_blocked: boolean;
     total_bookings: number;
@@ -19,4 +19,15 @@ export interface IVendor{
 export interface PaginatedVendors {
   vendors: IVendor[];
   totalPages: number;
+}
+
+export interface VendorQuery {
+  service?: string;
+  city?: string;
+}
+
+export interface UpdateVendorData {
+  name?: string;
+  city?: string;
+  service?: string[];
 }

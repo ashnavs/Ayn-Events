@@ -132,9 +132,9 @@ console.log("Auth state:", useSelector((state) => state.auth)); // Log entire st
                     <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
                   <div className="flex items-center justify-center">
-                    <a href="#" className="text-center text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
+                    {/* <a href="#" className="text-center text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
                       Forgot password?
-                    </a>
+                    </a> */}
                   </div>
                   <button
                     type="submit"

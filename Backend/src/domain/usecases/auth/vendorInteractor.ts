@@ -205,7 +205,10 @@ export default{
             console.error('Error in createPost:', error);
           throw error;
         }
-      }
+      },
+    //   fetchVendorsByCategoryAndCity : async (service: string, city: string) => {
+    //     return getVendorsByCategoryAndCity(service, city);
+    //   },
       
     
     
