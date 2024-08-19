@@ -1,3 +1,5 @@
+
+
 import { Server, Socket } from 'socket.io';
 import mongoose from 'mongoose';
 import Message from '../../infrastructure/database/dbmodel/MessageModel';
@@ -7,21 +9,73 @@ import { uploadToS3 } from '../../utils/s3Uploader';
 const handleSocketEvents = (io: Server) => {
   io.on('connection', (socket: Socket) => {
     console.log(`Socket connected: ${socket.id}`);
+
+    // Join room
     socket.on('join_room', async (room) => {
       if (!mongoose.Types.ObjectId.isValid(room)) {
         console.error(`Invalid chat ID: ${room}`);
         return;
       }
-
       socket.join(room);
       console.log(`Socket ${socket.id} joined room ${room}`);
     });
 
     socket.on('message', (message) => {
-      console.log('Message received on server:', message);
-      io.to(message.roomId).emit('message', message); // Broadcast to room
+            console.log('Message received on server:', message);
+            io.to(message.roomId).emit('message', message); // Broadcast to room
+          });
+      
+
+    // Handle sending messages (text only, image only, or both)
+    socket.on('sendMessage', async (data) => {
+      try {
+        console.log('Received message data:', data);
+        
+        // Handle text message
+        if (data.content) {
+          const message = new Message({
+            chat: data.roomId,
+            sender: data.sender,
+            content: data.content,
+            senderModel: data.senderModel,
+          });
+
+          const savedMessage = await message.save();
+          io.to(data.roomId).emit('receiveMessage', savedMessage);
+          console.log('Message saved and sent:', savedMessage);
+        }
+
+        // Handle file uploads
+        if (data.fileBase64) {
+          const buffer = Buffer.from(data.fileBase64, 'base64');
+          const uniqueFileName = `${Date.now()}-${data.fileName}`;
+          const file = {
+            buffer,
+            originalname: uniqueFileName,
+            mimetype: data.fileType,
+          };
+
+          const { Location } = await uploadToS3(file);
+          const newMessage = await Message.create({
+            chat: data.roomId,
+            sender: data.sender,
+            senderModel: data.senderModel,
+            fileUrl: Location,
+            fileName: data.fileName,
+            fileType: data.fileType,
+            isFile: true,
+          });
+
+          io.to(data.roomId).emit('receiveMessage', newMessage);
+          console.log(`File uploaded and sent to room ${data.roomId}: ${data.fileName}`);
+        }
+      } catch (error) {
+        console.error('Error processing message:', error);
+        socket.emit('error', { message: 'Error processing message' });
+      }
     });
 
+    // Handle chat requests
     socket.on('chatRequest', async ({ userId, vendorId }) => {
       console.log('Chat request received:', { userId, vendorId });
       try {
@@ -42,7 +96,6 @@ const handleSocketEvents = (io: Server) => {
         }
 
         const roomId = newChat._id.toString();
-
         socket.to(vendorId).emit('chatRequest', {
           from: userId,
           roomId,
@@ -61,6 +114,7 @@ const handleSocketEvents = (io: Server) => {
       }
     });
 
+    // Handle accepting chat requests
     socket.on('acceptChatRequest', async ({ userId, vendorId, roomId }) => {
       console.log('Accept chat request received:', { userId, vendorId, roomId });
       try {
@@ -83,82 +137,7 @@ const handleSocketEvents = (io: Server) => {
       }
     });
 
-    // socket.on('sendMessage', async ({ roomId, userId, message, senderModel }) => {
-    //   console.log('Received sendMessage:', { roomId, userId, message, senderModel });
-    //   try {
-    //     if (!mongoose.Types.ObjectId.isValid(roomId) || !mongoose.Types.ObjectId.isValid(userId) || !senderModel) {
-    //       console.error('Invalid roomId, userId, or missing senderModel:', { roomId, userId, senderModel });
-    //       return;
-    //     }
-
-    //     const newMessage = await Message.create({
-    //       chat: roomId,
-    //       sender: userId,
-    //       senderModel,
-    //       content: message,
-    //     });
-
-    //     io.to(roomId).emit('receiveMessage', newMessage);
-    //     console.log(`Message sent to room ${roomId}: ${message}`);
-    //   } catch (error) {
-    //     console.error('Error sending message:', error);
-    //   }
-    // });
-
-    socket.on('sendMessage', async ({ roomId, userId, message, senderModel }) => {
-      try {
-        const newMessage = await Message.create({
-          chat: roomId,
-          sender: userId,
-          senderModel,
-          content: message,
-        });
-    
-        io.to(roomId).emit('receiveMessage', newMessage); // Emit to the room
-        console.log(`Message sent to room ${roomId}: ${message}`);
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    });
-
-   
-
-    // socket.on('uploadImage', async ({ roomId, userId, imageBase64, senderModel }) => {
-    //   try {
-    //     if (!mongoose.Types.ObjectId.isValid(roomId) || !mongoose.Types.ObjectId.isValid(userId) || !imageBase64) {
-    //       throw new Error('Invalid input data');
-    //     }
-
-    //     const buffer = Buffer.from(imageBase64, 'base64');
-    //     const file = {
-    //       buffer,
-    //       originalname: `${Date.now()}-image.jpg`,
-    //       mimetype: 'image/jpeg', // Adjust as needed
-    //     };
-
-    //     const result = await uploadToS3(file);
-    //     const imageUrl = result.Location;
-
-    //     const newMessage = await Message.create({
-    //       chat: roomId,
-    //       sender: userId,
-    //       content: imageUrl,
-    //       senderModel,
-    //       isImage: true,
-    //     });
-
-    //     io.to(roomId).emit('receiveMessage', newMessage);
-    //     console.log(`Image uploaded and message sent to room ${roomId}`);
-    //   } catch (error) {
-    //     console.error('Error uploading image:', error);
-    //   }
-    // });
-
-    
-    
-    
-    
-
+    // Handle socket disconnection
     socket.on('disconnect', () => {
       console.log(`Socket disconnected: ${socket.id}`);
     });

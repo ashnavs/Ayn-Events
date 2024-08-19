@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import axiosInstanceUser from '../../services/axiosInstanceUser';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../features/auth/authSlice';
-import { useSocket } from '../../services/socketProvider'; 
-import Header from '../../components/Header'
-import EmojiPicker from 'emoji-picker-react'
-
+import { useSocket } from '../../services/socketProvider';
+import Header from '../../components/Header';
+import EmojiPicker from 'emoji-picker-react';
 import { GrEmoji } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 
@@ -19,11 +17,11 @@ const UserChat = () => {
   const [userData, setUserData] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-
   const { socket } = useSocket(); // Use socket from context
   const user = useSelector(selectUser);
   const userId = user.id;
 
+  // Fetch active chats when userId changes
   useEffect(() => {
     const fetchActiveChats = async () => {
       try {
@@ -37,103 +35,56 @@ const UserChat = () => {
     fetchActiveChats();
   }, [userId]);
 
- useEffect(() => {
-  if (selectedRoom) {
-    socket.emit('join_room', selectedRoom);
-
-    const handleReceiveMessage = (newMessage) => {
-      if (newMessage.chat === selectedRoom) {
-
-          setMessagesByRoom((prevMessagesByRoom) => {
-            const updatedMessages = {
-              ...prevMessagesByRoom,
-              [selectedRoom]: [
-                ...(prevMessagesByRoom[selectedRoom] || []),
-                newMessage,
-              ],
-            };
-            return updatedMessages;
-          });
-
-        
-      }
-    };
-
-    socket.on('receiveMessage', handleReceiveMessage);
-
-    return () => {
-      socket.off('receiveMessage', handleReceiveMessage);
-    };
-  }
-}, [socket, selectedRoom]);
-
-
+  // Handle real-time message updates
   useEffect(() => {
     if (socket) {
-      socket.on('message', (newMessage) => {
-        setMessagesByRoom((prevMessagesByRoom) => ({
-          ...prevMessagesByRoom,
-          [newMessage.roomId]: [
-            ...(prevMessagesByRoom[newMessage.roomId] || []),
-            newMessage,
-          ],
-        }));
-      });
+      const handleReceiveMessage = (newMessage) => {
+        console.log('Received message on frontend:', newMessage);
+        setMessagesByRoom(prevMessagesByRoom => {
+          const roomMessages = prevMessagesByRoom[newMessage.chat] || [];
+          return {
+            ...prevMessagesByRoom,
+            [newMessage.chat]: [...roomMessages, newMessage],
+          };
+        });
+      };
+  
+      socket.on('receiveMessage', handleReceiveMessage);
   
       return () => {
-        socket.off('message');
+        socket.off('receiveMessage', handleReceiveMessage);
       };
     }
   }, [socket]);
   
 
-  const handleRoomSelect = (roomId) => {
-    setSelectedRoom(roomId);
+  // Handle room selection and joining
+  useEffect(() => {
+    if (selectedRoom && socket) {
+      console.log(`Joining room ${selectedRoom}`);
+      socket.emit('join_room', selectedRoom);
 
-    const fetchMessagesForRoom = async () => {
-      try {
-        const response = await axiosInstanceUser.get(`/messages/${roomId}`);
-        console.log('Fetched messages:', response.data);
+      return () => {
+        console.log(`Leaving room ${selectedRoom}`);
+        socket.emit('leave_room', selectedRoom);
+      };
+    }
+  }, [selectedRoom, socket]);
 
-        const messages = response.data.messages || [];
-
-        setMessagesByRoom((prevMessagesByRoom) => ({
-          ...prevMessagesByRoom,
-          [roomId]: messages,
-        }));
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
-
-    const fetchRoomDetails = async () => {
-      try {
-        const response = await axiosInstanceUser.get(`/rooms/${roomId}`);
-        const { vendor, user } = response.data;
-        setVendorData(vendor);
-        setUserData(user);
-      } catch (error) {
-        console.error('Error fetching room details:', error);
-      }
-    };
-
-    fetchMessagesForRoom();
-    fetchRoomDetails();
-  };
-
+  // Handle sending a new message
   const handleSendMessage = () => {
+    console.log("Sending message...");
+    const senderId = userId;
     if (selectedRoom && messageInput) {
       const newMessage = {
         roomId: selectedRoom,
-        userId: userId,
-        message: messageInput,
+        sender: senderId,
+        content: messageInput,
         senderModel: 'User',
       };
-  
-      socket.emit('sendMessage', newMessage); // Send message to WebSocket server
-  
 
-      //its commented due to the doubling of msgs
+      socket.emit('sendMessage', newMessage);
+
       setMessagesByRoom((prevMessagesByRoom) => {
         const updatedMessages = {
           ...prevMessagesByRoom,
@@ -142,24 +93,59 @@ const UserChat = () => {
             newMessage,
           ],
         };
-        console.log('Messages updated:', updatedMessages); // Debugging line
         return updatedMessages;
       });
-      
-      setMessageInput(''); // Clear the input field after sending the message
+
+      setMessageInput('');
     }
+  };
+
+  // Fetch messages and room details when a room is selected
+  useEffect(() => {
+    if (selectedRoom) {
+      const fetchMessagesForRoom = async () => {
+        try {
+          const response = await axiosInstanceUser.get(`/messages/${selectedRoom}`);
+          console.log('Fetched messages:', response.data);
+
+          const messages = response.data.messages || [];
+
+          setMessagesByRoom((prevMessagesByRoom) => ({
+            ...prevMessagesByRoom,
+            [selectedRoom]: messages,
+          }));
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
+      };
+
+      const fetchRoomDetails = async () => {
+        try {
+          const response = await axiosInstanceUser.get(`/rooms/${selectedRoom}`);
+          const { vendor, user } = response.data;
+          setVendorData(vendor);
+          setUserData(user);
+        } catch (error) {
+          console.error('Error fetching room details:', error);
+        }
+      };
+
+      fetchMessagesForRoom();
+      fetchRoomDetails();
+    }
+  }, [selectedRoom]);
+
+  const handleRoomSelect = (roomId) => {
+    setSelectedRoom(roomId);
   };
 
   const handleEmojiClick = (emojiObject) => {
     setMessageInput((prevInput) => prevInput + emojiObject.emoji);
     setShowEmojiPicker(false); // Hide emoji picker after selecting an emoji
   };
-  
-  
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* <Header/> */}
       {/* Sidebar for Active Rooms */}
       <div className="w-1/4 border-r border-gray-200 p-4 bg-white">
         <h2 className="text-xl font-bold mb-4">Chats</h2>
@@ -198,7 +184,7 @@ const UserChat = () => {
             Array.isArray(messagesByRoom[selectedRoom]) ? (
               messagesByRoom[selectedRoom].map((msg, index) => (
                 <div
-                  key={`${msg._id}-${index}`} // Ensure key is unique
+                  key={`${msg._id}-${index}`}
                   className={`mb-2 p-2 rounded-lg max-w-xs ${msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'}`}
                 >
                   {msg.content}
@@ -256,4 +242,3 @@ const UserChat = () => {
 };
 
 export default UserChat;
-

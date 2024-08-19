@@ -72,7 +72,7 @@ const VendorChat = () => {
   
         if(message.senderModel !== "Vendor") {
           setMessagesByRoom((prevMessagesByRoom) => {
-            const { chat } = message; // Assuming `chat` is the room ID in the message object
+            const { chat } = message;
             const roomMessages = prevMessagesByRoom[chat] || [];
             return {
               ...prevMessagesByRoom,
@@ -106,83 +106,47 @@ const VendorChat = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && selectedChat) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result.split(',')[1];
-        const fileData = {
-          roomId: selectedChat._id,
-          userId,
-          imageBase64: base64String,
-          senderModel: 'Vendor',
-        };
-        socket.emit('uploadImage', fileData);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  // const handleSendMessage = (message) => {
-  //   if (socket && selectedChat) {
-  //     const { _id: roomId } = selectedChat;
-  //     const senderModel = 'Vendor'; // Or 'User' based on the context
-  
-  //     if (roomId && userId && message) {
-  //       socket.emit('sendMessage', { roomId, userId, message, senderModel });
-        
-  //       // Optimistically add the message to the UI
-  //       setMessagesByRoom((prevMessagesByRoom) => {
-  //         const roomMessages = prevMessagesByRoom[roomId] || [];
-  //         return {
-  //           ...prevMessagesByRoom,
-  //           [roomId]: [...roomMessages, { sender: userId, content: message, senderModel: senderModel }],
-  //         };
-  //       });
-  
-  //       setMessageInput('');
-  //       setShowEmojiPicker(false); 
-  //     } else {
-  //       console.error('Room ID, User ID, or Message is missing.');
-  //     }
-  //   } else {
-  //     console.error('Selected chat is not set.');
-  //   }
-  // };
 
-  //file
-  const handleSendMessage = async (message) => {
+  const handleSendMessage = async () => {
     if (socket && selectedChat) {
       const { _id: roomId } = selectedChat;
-      const senderModel = 'Vendor'; // Or 'User' based on the context
+      const sender = vendorId;
+      const senderModel = 'Vendor';
   
-      if (roomId && userId) {
-        // Create the message object
+      if (roomId && sender) {
+        const imageBase64 = selectedImage ? await convertImageToBase64(selectedImage) : null;
         const messageData = {
           roomId,
-          userId,
-          message,
+          sender,
+          content: messageInput,
           senderModel,
-          imageBase64: selectedImage ? await convertImageToBase64(selectedImage) : null, // Convert image to Base64
+          fileBase64: imageBase64,
+          fileName: selectedImage?.name,
+          fileType: selectedImage?.type,
+          fileUrl: selectedImage ? URL.createObjectURL(selectedImage) : null // Create a local URL for the image
         };
   
-        socket.emit('sendMessage', messageData);
+        try {
+          socket.emit('sendMessage', messageData);
   
-        // Optimistically add the message to the UI
-        setMessagesByRoom((prevMessagesByRoom) => {
-          const roomMessages = prevMessagesByRoom[roomId] || [];
-          return {
-            ...prevMessagesByRoom,
-            [roomId]: [...roomMessages, { ...messageData, content: messageData.imageBase64 ? URL.createObjectURL(new Blob([selectedImage])) : message }],
-          };
-        });
+          // Optimistically add the message to the UI
+          setMessagesByRoom((prevMessagesByRoom) => {
+            const roomMessages = prevMessagesByRoom[roomId] || [];
+            return {
+              ...prevMessagesByRoom,
+              [roomId]: [...roomMessages, messageData],
+            };
+          });
   
-        setMessageInput('');
-        setShowEmojiPicker(false);
-        setSelectedImage(null); // Clear selected image after sending
+          setMessageInput('');
+          setShowEmojiPicker(false);
+          setSelectedImage(null);
+        } catch (error) {
+          console.error('Error sending message:', error);
+        }
       } else {
-        console.error('Room ID or User ID is missing.');
+        console.error('Room ID or Vendor ID is missing.');
       }
     } else {
       console.error('Selected chat is not set.');
@@ -199,6 +163,8 @@ const VendorChat = () => {
     });
   };
   
+  
+
   
 
   const handleSelectedChat = async (chatId) => {
@@ -246,6 +212,17 @@ const VendorChat = () => {
     setShowEmojiPicker(false); // Hide emoji picker after selecting an emoji
   };
 
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file); // Store the file object
+    }
+  };
+  
+  
+  
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar for Active Chats */}
@@ -269,7 +246,7 @@ const VendorChat = () => {
             ))
           )}
         </div>
-
+  
         {/* Chat Requests */}
         <h3 className="font-semibold">Chat Requests</h3>
         {chatRequests.length === 0 ? (
@@ -296,11 +273,11 @@ const VendorChat = () => {
           ))
         )}
       </div>
-
+  
       {/* Chat Area */}
       <div className="flex-grow flex flex-col">
         {/* Messages Display */}
-        <div className="flex-grow overflow-y-auto p-4 ">
+        <div className="flex-grow overflow-y-auto p-4">
           {selectedChat ? (
             messagesByRoom[selectedChat._id]?.length > 0 ? (
               messagesByRoom[selectedChat._id].map((msg) => (
@@ -310,7 +287,14 @@ const VendorChat = () => {
                     msg.senderModel === 'Vendor' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
                   }`}
                 >
-                  {msg.content}
+                  {msg.content && <p>{msg.content}</p>}
+                  {msg.fileUrl && (
+                    <img
+                      src={msg.fileUrl}
+                      alt={msg.fileName}
+                      className="mt-2 max-w-full h-auto rounded-lg"
+                    />
+                  )}
                 </div>
               ))
             ) : (
@@ -320,9 +304,9 @@ const VendorChat = () => {
             <p>Select a chat to start messaging</p>
           )}
         </div>
-
-      {/* Message Input */}
-      {selectedChat && (
+  
+        {/* Message Input */}
+        {selectedChat && (
           <div className="p-4 border-t border-gray-200 flex items-center space-x-2">
             <button
               className="p-2 bg-[#ccc89b] rounded-full hover:bg-[#ccc89b]"
@@ -342,20 +326,18 @@ const VendorChat = () => {
               placeholder="Type a message..."
               className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-             <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-            id="imageUpload"
-          />
-<label htmlFor="imageUpload" className="cursor-pointer p-2 bg-[#ccc89b] rounded-full hover:bg-[#a39f74]">
-<IoAttachSharp />
-
-</label>
-
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+              id="imageUpload"
+            />
+            <label htmlFor="imageUpload" className="cursor-pointer p-2 bg-[#ccc89b] rounded-full hover:bg-[#a39f74]">
+              <IoAttachSharp />
+            </label>
             <button
-              onClick={() => handleSendMessage(messageInput)}
+              onClick={handleSendMessage}
               className="bg-[#a39f74] text-white p-2 rounded-full hover:bg-[#ccc89b]"
             >
               <IoIosSend />
@@ -365,6 +347,7 @@ const VendorChat = () => {
       </div>
     </div>
   );
+  
 };
 
 
