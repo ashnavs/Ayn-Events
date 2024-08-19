@@ -7,10 +7,15 @@ export const checkAvailabilityByDate = async (date: Date, vendorId: string): Pro
   return booking;
 };
 
-export const saveBooking = async (bookingData: IBooking): Promise<IBooking> => {
+export const saveBooking = async (bookingData: Partial<IBooking>): Promise<IBooking> => {
 
-    log('akjhhskja')
-  const booking = new Booking(bookingData);
+  console.log('Booking data received:', bookingData); // Add this line to debug
+
+    const booking = new Booking({
+      ...bookingData,
+      status: 'pending',
+    });
+  console.log(booking,"boooooooooooo")
   await booking.save();
   return booking;
 };

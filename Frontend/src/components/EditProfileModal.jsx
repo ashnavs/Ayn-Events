@@ -1,15 +1,16 @@
+
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axiosInstanceVendor from '../services/axiosInstanceVenndor';
 import { fetchCities, fetchServices } from '../services/cityService';
-import Select from 'react-select'
+import Select from 'react-select';
 
-const EditProfileModal = ({ isOpen, onRequestClose, vendor }) => {
+const EditProfileModal = ({ isOpen, onRequestClose, vendor,  onVendorUpdated  }) => {
   const [cities, setCities] = useState([]);
   const [services, setServices] = useState([]);
-  const [newService, setNewService] = useState('');
+  const [selectedServices, setSelectedServices] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,15 +18,25 @@ const EditProfileModal = ({ isOpen, onRequestClose, vendor }) => {
         const fetchedCities = await fetchCities();
         const fetchedServices = await fetchServices();
         setCities(fetchedCities);
-        setServices(fetchedServices.map(service => ({ value: service, label: service })));
-        setNewService(vendor.service?.map(service => ({ value: service, label: service })) || []);
+
+
+        const serviceOptions = fetchedServices.map(service => ({ value: service, label: service }));
+        setServices(serviceOptions);
+
+              
+        const mappedVendorServices = vendor.services?.map(service => ({
+          service: serviceOptions.find(option => option.value === service.name),
+          price: service.price,
+        })).filter(service => service.service !== undefined) || [];
+
+        setSelectedServices(mappedVendorServices);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
     fetchData();
-  }, [vendor.service]);
+  }, [vendor.services]);
 
   const formik = useFormik({
     initialValues: {
@@ -38,26 +49,40 @@ const EditProfileModal = ({ isOpen, onRequestClose, vendor }) => {
     }),
     enableReinitialize: true,
     onSubmit: async (values) => {
-        try {
-            const updatedValues = {
-              ...values,
-              service: newService.map(service => service.value), // Extract only the values
-            };
-    
-            console.log('Updated Values:', updatedValues);
-    
-            await axiosInstanceVendor.put(`/${vendor._id}`, updatedValues);
-            onRequestClose();
-            // Optionally, trigger a refresh of the vendor data here
-          } catch (error) {
-            console.error('Failed to update profile:', error);
-          }
+      try {
+        const updatedValues = {
+          ...values,
+          services: selectedServices.map(service => ({
+            name: service.service.value,
+            price: service.price,
+          })),
+        };
+
+        console.log('Updated Values:', updatedValues);
+
+        await axiosInstanceVendor.put(`/${vendor._id}`, updatedValues);
+        onRequestClose();
+        onVendorUpdated();
+        // Optionally, trigger a refresh of the vendor data here
+      } catch (error) {
+        console.error('Failed to update profile:', error);
+      }
     },
   });
 
-  const handleServiceChange = (selectedoptions) => {
-    setNewService(selectedoptions)
-  }
+  const handleServiceChange = (selectedOptions) => {
+    const updatedServices = selectedOptions.map(option => {
+      const existingService = selectedServices.find(service => service.service.value === option.value);
+      return existingService || { service: option, price: '' };
+    });
+    setSelectedServices(updatedServices);
+  };
+
+  const handlePriceChange = (index, event) => {
+    const updatedServices = [...selectedServices];
+    updatedServices[index].price = event.target.value;
+    setSelectedServices(updatedServices);
+  };
 
   return (
     <Modal
@@ -119,17 +144,29 @@ const EditProfileModal = ({ isOpen, onRequestClose, vendor }) => {
           {formik.errors.city ? <div className="text-red-600 mt-1">{formik.errors.city}</div> : null}
         </div>
         <div>
-          <label htmlFor="service" className="block text-gray-700 font-medium mb-2">Services</label>
+          <label htmlFor="services" className="block text-gray-700 font-medium mb-2">Services</label>
           <Select
-            id="service"
+            id="services"
             isMulti
             options={services}
-            value={newService}
+            value={selectedServices.map(service => service.service)}
             onChange={handleServiceChange}
             className="w-full"
           />
         </div>
-        <div className="flex justify-end space-x-4">
+        {selectedServices.map((service, index) => (
+          <div key={index} className="flex items-center space-x-4 mt-4">
+            <span className="flex-1 text-gray-700">{service.service.label}</span>
+            <input
+              type="number"
+              placeholder="Price"
+              value={service.price}
+              onChange={(e) => handlePriceChange(index, e)}
+              className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        ))} 
+        <div className="flex justify-end space-x-4 mt-6">
           <button
             type="submit"
             className="bg-[#a39f74] text-white px-4 py-2 rounded-md hover:bg-[#98946d]"

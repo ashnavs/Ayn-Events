@@ -22,6 +22,7 @@ const HeroBanner = ({ setVendors }) => {
     const getServices = async () => {
       try {
         const servicesData = await fetchServices();
+        console.log(servicesData)
         setServices(servicesData);
       } catch (error) {
         console.error('Error fetching services:', error);
@@ -56,7 +57,7 @@ const HeroBanner = ({ setVendors }) => {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
-              <option value="">Select vendor Category</option>
+              <option value="">Select service</option>
               {services.map((service) => (
                 <option key={service} value={service}>{service}</option>
               ))}

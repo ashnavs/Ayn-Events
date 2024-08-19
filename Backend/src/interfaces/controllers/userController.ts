@@ -3,7 +3,7 @@ import userInteractor from "../../domain/usecases/auth/userInteractor";
 import { generateOTP } from '../../utils/otpUtils'
 import sendOTPEmail from '../../utils/emailUtils'
 import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
-import { getServices, getUserbyEMail } from "../../infrastructure/repositories/mongoUserRepository";
+import { getServices, getUserbyEMail, userCount } from "../../infrastructure/repositories/mongoUserRepository";
 import { log } from "console";
 import jwt from 'jsonwebtoken'
 import { generateToken } from "../../domain/helper/jwtHelper";
@@ -16,6 +16,10 @@ import { saveBooking } from "../../infrastructure/repositories/mongoBookingRepos
 import eventBookingModel from "../../infrastructure/database/dbmodel/eventBookingModel";
 import { VendorQuery } from "../../domain/entities/types/vendorTypes";
 import { getVendorsWithService } from "../../infrastructure/repositories/mongoVendorrepository";
+import { Encrypt } from "../../domain/helper/hashPassword";
+import { getServiceImages } from "../../infrastructure/repositories/mongoServiceRepository";
+import ChatModel from "../../infrastructure/database/dbmodel/chatModel";
+import Message from "../../infrastructure/database/dbmodel/MessageModel";
 
 
 
@@ -230,8 +234,10 @@ export default {
     try {
 
       const bookingData = req.body;
+      console.log(bookingData,"bookdata")
 
       const newBooking = await userInteractor.addNewBooking(bookingData);
+      console.log(newBooking,"newbook")
       res.status(201).json(newBooking);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -282,38 +288,296 @@ export default {
     // }
 
 
-    getVendors:async (req: Request, res: Response) => {
+    // getVendors:async (req: Request, res: Response) => {
+    //   try {
+    //     const { service, city } = req.query as VendorQuery; // Cast query to VendorQuery
+    //     console.log(`service: ${service} city: ${city}`); // Debug log
+    
+    //     const query: any = { is_verified: true, is_blocked: false }; // Use `any` type here for dynamic properties
+    //     if (service) query.service = service;
+    //     if (city) query.city = city;
+    
+    //     try {
+    //       let vendors;
+    //       if (!service && !city) {
+    //         // Fetch all vendors if no query parameters are provided
+    //         vendors = await getVendorsWithService();
+    //         log(vendors,"vvvvvv")
+    //       } else {
+    //         // Fetch vendors based on query parameters
+    //         vendors = await Vendor.find(query, {
+    //           _id: 1, name: 1, email: 1, city: 1, service: 1, is_blocked: 1
+    //         });
+    //       }
+    //       res.status(200).json(vendors);
+    //       console.log(vendors, "vendors"); // Debug log
+    //     } catch (error) {
+    //       console.error('Failed to fetch vendors', error);
+    //       res.status(500).json({ message: 'Failed to fetch vendors' });
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to fetch vendors', error);
+    //     res.status(500).json({ message: 'Failed to fetch vendors' });
+    //   }
+    // },
+
+  //   getVendors : async (req: Request, res: Response) => {
+  //     try {
+  //         const { service, city } = req.query as { service?: string; city?: string }; 
+  //         console.log(`service: ${service} city: ${city}`);
+  
+  //         const query: any = { is_verified: true, is_blocked: false };
+  //         if (service) {
+  //             query.services = { $elemMatch: { name: service } };
+  //         }
+  //         if (city) {
+  //             query.city = city;
+  //         }
+  
+  //         try {
+  //             let vendors;
+  //             if (!service && !city) {
+  //                 // Fetch all vendors if no query parameters are provided
+  //                 const result = await getVendorsWithService();
+  //                 vendors = result.vendors;
+  //                 console.log(vendors, "All vendors with services");
+  //             } else {
+  //                 // Fetch vendors based on query parameters
+  //                 vendors = await Vendor.find(query, {
+  //                     _id: 1, name: 1, email: 1, city: 1, services: 1, is_blocked: 1
+  //                 }).lean(); 
+  //                 console.log(vendors, "Filtered vendors");
+  //             }
+  //             res.status(200).json(vendors);
+  //         } catch (error) {
+  //             console.error('Failed to fetch vendors', error);
+  //             res.status(500).json({ message: 'Failed to fetch vendors' });
+  //         }
+  //     } catch (error) {
+  //         console.error('Failed to fetch vendors', error);
+  //         res.status(500).json({ message: 'Failed to fetch vendors' });
+  //     }
+  // },  
+
+  //new:
+  getVendors:async (req: Request, res: Response) => {
+    try {
+      const { service, city } = req.query as { service?: string; city?: string };
+  
+      console.log(`service: ${service} city: ${city}`);
+  
+      const query: any = { is_verified: true, is_blocked: false };
+      if (service) {
+        query.services = { $elemMatch: { name: service } };
+      }
+      if (city) {
+        query.city = city;
+      }
+  
+      let vendors;
+      if (!service && !city) {
+        // Fetch all vendors if no query parameters are provided
+        const result = await getVendorsWithService();
+        vendors = result.vendors;
+        console.log(vendors, "All vendors with services");
+      } else {
+        // Fetch vendors based on query parameters
+        vendors = await Vendor.find(query, {
+          _id: 1, name: 1, email: 1, city: 1, services: 1, is_blocked: 1
+        }).lean();
+        console.log(vendors, "Filtered vendors");
+      }
+  
+      // Extract unique service names from the filtered vendors
+      const serviceNames = [...new Set(vendors.flatMap(vendor => vendor.services.map(service => service.name)))];
+  
+      // Fetch service images
+      const serviceImages = await getServiceImages(serviceNames);
+      const serviceImagesMap = new Map(serviceImages.map(img => [img.name, img.imageUrl]));
+  
+      // Map the service images to the vendors' services
+      const vendorsWithImages = vendors.map(vendor => ({
+        ...vendor,
+        services: vendor.services.map(service => ({
+          ...service,
+          imageUrl: serviceImagesMap.get(service.name) || '' // Default image URL if not found
+        }))
+      }));
+  
+      res.status(200).json(vendorsWithImages);
+    } catch (error) {
+      console.error('Failed to fetch vendors', error);
+      res.status(500).json({ message: 'Failed to fetch vendors' });
+    }
+  },
+    updateUser:async(req:Request , res:Response) => {
+      const {name} = req.body
+        const {userId} = req.params
       try {
-        const { service, city } = req.query as VendorQuery; // Cast query to VendorQuery
-        console.log(`service: ${service} city: ${city}`); // Debug log
-    
-        const query: any = { is_verified: true, is_blocked: false }; // Use `any` type here for dynamic properties
-        if (service) query.service = service;
-        if (city) query.city = city;
-    
-        try {
-          let vendors;
-          if (!service && !city) {
-            // Fetch all vendors if no query parameters are provided
-            vendors = await getVendorsWithService();
-            log(vendors,"vvvvvv")
-          } else {
-            // Fetch vendors based on query parameters
-            vendors = await Vendor.find(query, {
-              _id: 1, name: 1, email: 1, city: 1, service: 1, is_blocked: 1
-            });
-          }
-          res.status(200).json(vendors);
-          console.log(vendors, "vendors"); // Debug log
-        } catch (error) {
-          console.error('Failed to fetch vendors', error);
-          res.status(500).json({ message: 'Failed to fetch vendors' });
+        
+        const user = await Users.findById(userId)
+
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
         }
+        
+        user.name = name || user.name;
+
+
+        const updatedUser =  await user.save();
+        console.log(updatedUser,'upuser')
+        res.status(200).json(  updatedUser );
+        
       } catch (error) {
-        console.error('Failed to fetch vendors', error);
-        res.status(500).json({ message: 'Failed to fetch vendors' });
+        console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Failed to update user' });
+      }
+    },
+    bookingDetails: async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      console.log(userId,"userIddddddddd")
+      try {
+        const bookings = await eventBookingModel.find({ user: userId })
+          .populate('user')
+          .populate('vendor');
+        console.log(bookings, "bookings");
+        res.json(bookings);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    },
+    updateBookingStatus:async(req:Request,res:Response) => {
+      const { bookingId } = req.params; // Extract booking ID from request parameters
+      const { status } = req.body; 
+      console.log("bookID:",bookingId)
+      console.log("status:",status)
+
+      try {
+        const booking = await eventBookingModel.findByIdAndUpdate(bookingId, {status} , {new:true});
+        if (!booking) {
+          return res.status(404).json({ message: 'Booking not found' });
+        }
+        res.status(200).json(booking)
+      } catch (error) {
+        console.error('Error updating booking status:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    },
+    changePassword:async(req:Request,res:Response) => {
+      const {currentPassword,newPassword,userId} = req.body
+      console.log(currentPassword,newPassword,userId)
+      try {
+        const user = await Users.findById(userId);
+
+        if(!user){
+          return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!user.password) {
+          return res.status(400).json({ message: 'User password not set' });
+        }
+
+        const isMatch = await Encrypt.comparePassword(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    const hashedPassword = await Encrypt.cryptPassword(newPassword);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password updated successfully' });
+      } catch (error) {
+        
+      }
+    },
+    getUserCount: async (req: Request, res: Response) => {
+      try {
+   
+  
+        const userCounts = await userCount()
+        res.json(userCounts);
+      } catch (error) {
+        console.error('Failed to fetch bookings', error);
+        res.status(500).json({ message: 'Failed to fetch bookings' })
+      }
+    },
+    chatRoomExist:async(req:Request,res:Response) => {
+      const {userId} = req.body
+      console.log(userId)
+    },
+    getActiveChats : async (req: Request, res: Response) => {
+      const userId = req.params.userId;
+
+  try {
+    const chats = await ChatModel.find({
+      users: userId,
+      is_accepted: 'accepted'
+    })
+      .populate({
+        path: 'users',
+        model: 'User',
+        select: 'name',
+        match: { _id: { $ne: userId } } // Exclude the current user
+      })
+      .populate({
+        path: 'users',
+        model: 'Vendor',
+        select: 'name'
+      })
+      .exec();
+
+    res.json(chats);
+  } catch (error) {
+    console.error('Error fetching active chats:', error);
+    if (!res.headersSent) {
+      res.status(500).send('Server error');
+    }
+  }},
+    getMessagesByRoomId : async (req: Request, res: Response) => {
+      const roomId = req.params.roomId;
+      console.log(roomId,'rmid')
+    
+      try {
+        // Find the chat document using the roomId
+        const chat = await ChatModel.findById(roomId)
+          .populate('users', 'name')  // Populate user details
+          .populate({
+            path: 'users',
+            match: { _id: { $ne: req.params.userId } }, // Exclude the current user
+            select: 'name'
+          })
+          .exec();
+    
+        if (!chat) {
+          return res.status(404).json({ message: 'Chat not found' });
+        }
+    
+        // Fetch messages for the chat
+        const messages = await Message.find({ chat: roomId })
+          .populate('sender', 'name')  // Populate sender details (name)
+          .exec();
+    
+        // Fetch vendor details if available
+        const vendors = await Vendor.find({ _id: { $in: chat.users } });
+    
+        // Respond with chat details, messages, and vendors
+        res.json({
+          chat,
+          messages,
+          vendors
+        });
+      } catch (error) {
+        console.error('Error fetching chat and messages:', error);
+        if (!res.headersSent) {
+          res.status(500).send('Server error');
+        }
       }
     }
+
+   
+
 
     
 

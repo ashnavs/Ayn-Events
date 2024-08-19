@@ -4,10 +4,15 @@ import { log } from "console";
 import { uploadToS3 } from "../../utils/s3Uploader";
 import { LicenseDataRequest } from "../../domain/entities/types/licenceType";
 import { getServiceName, getVendorById } from "../../infrastructure/repositories/mongoAdminRepository";
-import { updateVendor } from "../../infrastructure/repositories/mongoVendorrepository";
+import { updateVendor, vendorCount } from "../../infrastructure/repositories/mongoVendorrepository";
 import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
 import { getPosts } from "../../infrastructure/repositories/mongoPostRepository";
 import { Vendor } from "../../infrastructure/database/dbmodel/vendorModel";
+import Post from "../../infrastructure/database/dbmodel/postModel";
+import eventBookingModel from "../../infrastructure/database/dbmodel/eventBookingModel";
+import { UpdateVendorData } from "../../domain/entities/types/vendorTypes";
+import ChatModel from "../../infrastructure/database/dbmodel/chatModel";
+import Message from "../../infrastructure/database/dbmodel/MessageModel";
 
 export default{
     vendorRegister: async(req:Request , res:Response, next:NextFunction) => {
@@ -173,11 +178,13 @@ export default{
     // }
     updateVendor: async (req: Request, res: Response) => {
       const { vendorId } = req.params;
-      const { name, city, service } = req.body;
+      const { name, city, services } = req.body;
+      console.log("reqbody", req.body);
     
       try {
-        // Pass the service data as an array of strings
-        const updatedVendor = await updateVendor(vendorId, { name, city, service });
+        // No need to transform services, as they are already in the correct format
+        const updatedVendor = await updateVendor(vendorId, { name, city, services });
+    
         if (updatedVendor) {
           res.status(200).json({ message: 'Vendor profile updated successfully', vendor: updatedVendor });
         } else {
@@ -186,6 +193,141 @@ export default{
       } catch (error: any) {
         res.status(500).json({ error: `Failed to update the vendor: ${error.message}` });
       }
+    },
+    deletePost: async(req:Request, res:Response) => {
+      try {
+        const {postId} = req.params
+        const posts = await Post.findByIdAndDelete(postId)
+        res.status(200).json(posts)
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to delete post' });
+      }
+    },
+    bookingDetails: async (req: Request, res: Response) => {
+      const { vendorId } = req.params;
+      console.log(vendorId,"vendid")
+      try {
+        const bookings = await eventBookingModel.find({ vendor: vendorId })
+          .populate('user')
+          .populate('vendor');
+        console.log(bookings, "bookings"); // This should output the bookings
+        res.json(bookings);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    },
+    updateBookingStatus:async(req:Request,res:Response) => {
+      const { id } = req.params; // Extract booking ID from request parameters
+      const { status } = req.body; 
+      console.log("bookID:",id)
+      console.log("status:",status)
+
+      try {
+        const booking = await eventBookingModel.findByIdAndUpdate(id, {status} , {new:true});
+        if (!booking) {
+          return res.status(404).json({ message: 'Booking not found' });
+        }
+        res.status(200).json(booking)
+      } catch (error) {
+        console.error('Error updating booking status:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    },
+    // getBookingDetails:async(req:Request , res:Response) => {
+    //   const {bookingId} = req.params
+    //   console.log(bookingId,"😒")
+    //   try {
+    //     const bookings = await eventBookingModel.findById(bookingId)
+    //     console.log(bookings,"💕")
+    //     if (!bookings) {
+    //       return res.status(404).json({ message: 'Booking not found' });
+    //     }
+    //     res.status(200).json(bookings)
+    //   } catch (error) {
+    //     console.error('Error updating booking details:', error);
+    //     res.status(500).json({ message: 'Internal server error' });
+    //   }
+    // }
+    getBookingDetails:async (req: Request, res: Response) => {
+      const { bookingId } = req.params;
+      console.log(bookingId, "😒");
+      try {
+        const booking = await eventBookingModel.findById(bookingId)
+          .populate({
+            path: 'user', // Populate the 'user' field
+            select: 'name email' // Select specific fields to include in the response
+          })
+          .exec();
+    
+        console.log(booking, "💕");
+        if (!booking) {
+          return res.status(404).json({ message: 'Booking not found' });
+        }
+        res.status(200).json(booking);
+      } catch (error) {
+        console.error('Error fetching booking details:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    },
+    // getVendorCount: async (req: Request, res: Response) => {
+    //   try {
+    //     const vendorCounts = await vendorCount();
+    //     console.log('Vendor count retrieved:', vendorCounts); // Log the count
+    //     res.json({ count: vendorCounts });
+    //   } catch (error) {
+    //     console.error('Failed to fetch vendor count:', error); // More specific error log
+    //     res.status(500).json({ message: 'Failed to fetch vendor count' });
+    //   }
+    // },
+    getVendorCount: async (req: Request, res: Response) => {
+      console.log('hiii')
+      try {
+        const vendorCounts = await Vendor.countDocuments(); ;
+        console.log('Vendor count retrieved:', vendorCounts); // Log the count
+        res.json({vendorCounts });
+      } catch (error) {
+        console.error('Failed to fetch vendor count:', error); // More specific error log
+        res.status(500).json({ message: 'Failed to fetch vendor count' });
+      }
+    },
+    getActiveChats : async (req: Request, res: Response) => {
+      try {
+        const { vendorId } = req.params;
+        console.log(vendorId,'vendoriddididid')
+    
+        // Query to find all active chats for the given vendor
+        const activeChats = await ChatModel.find({
+          users: vendorId,
+          is_accepted: 'accepted'
+        }).populate('users', 'name').populate('latestMessage');
+
+        console.log(activeChats,'activeChats')
+    
+        // Return the list of active chats
+        res.status(200).json(activeChats);
+      } catch (error) {
+        console.error('Error fetching active chats:', error);
+        res.status(500).json({ message: 'Server error' });
+      }
+    },
+    getMessages:async(req:Request, res:Response) => {
+      const { chatId } = req.params;
+      console.log(chatId,'chatId')
+
+  
+  try {
+    const messages = await Message.find({ chat: chatId })
+                                  .populate('sender', 'name')
+                                  .sort({ createdAt: 1 }); // Sort by creation time
+    
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching messages' });
+  }
     }
+    
+    
+
     
 }

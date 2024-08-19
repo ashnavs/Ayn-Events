@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaUser } from 'react-icons/fa';
 import { FiLogOut } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import { BsChatDotsFill } from 'react-icons/bs'
 
 
 const Header = () => {
@@ -51,15 +52,23 @@ const Header = () => {
         <Link to="/vendors" className="text-white hover:underline">Vendors</Link>
         {/* <h2>{user.name}</h2> */}
         <div className="relative group">
+          <Link to="/profile">
           <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }}>
             <FaUser size={18} onClick={handleAuth} />
           </button>
+          </Link>
           {user && (
             <div className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               {user.name}
             </div>
           )}
         </div>
+          <Link to='/chat'>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }}>
+          <BsChatDotsFill size={19}/>
+        </button>
+        </Link>
+
 
 
         <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }}>

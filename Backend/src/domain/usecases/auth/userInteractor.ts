@@ -197,12 +197,17 @@ export default {
         return !existingBooking;
       },
       
-    addNewBooking : async (bookingData: IBooking): Promise<IBooking> => {
-        log('inetrrt')
-        const newBooking = await saveBooking(bookingData);
-        log(newBooking,'ineraaaaaaac')
-        return newBooking;
-    },
+      addNewBooking: async (bookingData: IBooking): Promise<IBooking> => {
+        try {
+          const newBooking = await saveBooking(bookingData);
+          console.log('Booking added:', newBooking);
+          return newBooking;
+        } catch (error) {
+          console.error('Error adding booking:', error);
+          throw new Error('Error adding booking');
+        }
+      },
+      
 
 
 

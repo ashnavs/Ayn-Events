@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstanceUser from '../services/axiosInstanceUser';
 
 const VendorsFound = ({ vendors }) => {
+  console.log(vendors)
   const [licenseLogos, setLicenseLogos] = useState({});
   const navigate = useNavigate();
 

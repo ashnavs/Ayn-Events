@@ -33,6 +33,15 @@ vendorRouter.get('/:id',vendorController.getVendorById);
 vendorRouter.post('/posts',upload,vendorController.createPost)
 vendorRouter.get('/getposts/:vendorId',vendorController.getPosts)
 vendorRouter.put('/:vendorId',vendorController.updateVendor)
+vendorRouter.delete('/deleteposts/:postId',vendorController.deletePost)
+vendorRouter.get('/bookings/:vendorId',vendorController.bookingDetails)
+vendorRouter.patch('/booking/:id',vendorController.updateBookingStatus)
+vendorRouter.get('/bookingdetails/:bookingId',vendorController.getBookingDetails)
+vendorRouter.get('/count',vendorController.getVendorCount)
+vendorRouter.get('/active-chats/:vendorId',vendorController.getActiveChats)
+vendorRouter.get('/messages/:chatId',vendorController.getMessages)
+
+
 
 
 

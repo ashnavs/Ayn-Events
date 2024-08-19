@@ -104,11 +104,24 @@ function UserHomePage() {
     const fetchAllVendors = async () => {
       try {
         const response = await axiosInstanceUser.get('/vendors');
-        console.log(response);
-        const { vendors, matchingServices } = response.data;
+        console.log("API Response:", response.data);
+        const vendors = response.data;
         setVendors(vendors);
-        // Ensure matchingServices is an array of objects with 'name' and 'imageUrl' fields
-        setCategories(matchingServices.map(service => ({ name: service.name, imageUrl: service.imageUrl })));
+
+        // Extract unique services from vendors
+        const allServices = vendors.flatMap(vendor => vendor.services.map(service => service.name));
+        const uniqueServices = [...new Set(allServices)];
+
+        // Create categories with image URLs
+        const categories = uniqueServices.map(serviceName => {
+          const service = vendors.flatMap(vendor => vendor.services).find(service => service.name === serviceName);
+          return {
+            name: serviceName,
+            imageUrl: service ? service.imageUrl : '' // Handle cases where image URL might not be present
+          };
+        });
+
+        setCategories(categories);
       } catch (error) {
         console.error('Error fetching vendors:', error);
       }
@@ -125,25 +138,43 @@ function UserHomePage() {
     console.log('matchingServices:', categories);
   }, [categories]);
 
+  // const handleSetVendors = (vendorData) => {
+  //   setVendors(vendorData);
+
+  //   // Extract and flatten unique services
+  //   const uniqueServices = [...new Set(vendorData.flatMap(vendor => vendor.service))];
+    
+  //   // Map the unique services to their corresponding categories
+  //   const filteredCategories = uniqueServices.map(service => {
+  //     const category = categories.find(category => category.name === service);
+  //     return {
+  //       name: service,
+  //       imageUrl: category ? category.imageUrl : ''  // Set to an empty string or a default image if not found
+  //     };
+  //   });
+
+  //   setCategories(filteredCategories);
+  // };
+
   const handleSetVendors = (vendorData) => {
     setVendors(vendorData);
-
+  
     // Extract and flatten unique services
-    const uniqueServices = [...new Set(vendorData.flatMap(vendor => vendor.service))];
-    
+    const uniqueServices = [
+      ...new Set(vendorData.flatMap(vendor => vendor.services ? vendor.services.flatMap(service => service.name) : []))
+    ];
+  
     // Map the unique services to their corresponding categories
-    const filteredCategories = uniqueServices.map(service => {
-      const category = categories.find(category => category.name === service);
+    const filteredCategories = uniqueServices.map(serviceName => {
+      const category = categories.find(category => category.name === serviceName);
       return {
-        name: service,
+        name: serviceName,
         imageUrl: category ? category.imageUrl : ''  // Set to an empty string or a default image if not found
       };
     });
-
+  
     setCategories(filteredCategories);
   };
-
-
   return (
     <div>
       <Header />

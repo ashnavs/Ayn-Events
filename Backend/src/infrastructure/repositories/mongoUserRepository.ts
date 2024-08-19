@@ -107,6 +107,11 @@ export const getServices = async() => {
   return await Service.find()
 }
 
+export const userCount = async() => {
+    const userCount = await Users.countDocuments()
+    return userCount
+}
+
 
 
 

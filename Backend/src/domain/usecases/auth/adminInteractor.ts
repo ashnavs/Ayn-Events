@@ -87,7 +87,6 @@ export default {
       },
       addService:async(serviceData:{name:string,image:Express.Multer.File}) => {
         try {
-          console.log(serviceData,'intera');
           const {Location} = await uploadToS3(serviceData.image)
           
           const newService = new Service({

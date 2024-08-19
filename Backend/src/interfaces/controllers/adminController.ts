@@ -162,7 +162,7 @@ export default {
   addService: async (req: Request, res: Response) => {
     try {
       console.log('🤦‍♀️');
-      
+              
       const { name } = req.body;
       const image = req.file; 
 

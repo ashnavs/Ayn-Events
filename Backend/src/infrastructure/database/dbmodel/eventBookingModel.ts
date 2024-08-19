@@ -22,8 +22,8 @@ export interface IBooking extends Document {
   event_name: string;
   vendor_name: string;
   address: IAddress;
-  status: boolean;
-  payment_status: boolean;
+  status: string;
+  is_confirmed: boolean;
   amount: number;
   user: mongoose.Types.ObjectId;
   vendor: mongoose.Types.ObjectId;
@@ -46,12 +46,12 @@ const paymentSchema = new Schema<IPayment>({
 
 // Booking Schema
 const bookingSchema = new Schema<IBooking>({
-  date: { type: Date, required: true },
-  event_name: { type: String },
+  date: { type: Date, required: true }, 
+  event_name: { type: String, required: true },
   vendor_name: { type: String },
   address: { type: addressSchema, required: true },
-  status: { type: Boolean, default: false },
-  payment_status: { type: Boolean,default: true },
+  status: { type: String, default: 'pending' },
+  is_confirmed: { type: Boolean,default: false },
   amount: { type: Number, required: true },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   vendor: { type: Schema.Types.ObjectId, ref: 'Vendor', required: true },

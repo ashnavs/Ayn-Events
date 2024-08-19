@@ -5,30 +5,52 @@ import { selectVendor } from '../features/vendor/vendorSlice';
 import axiosInstanceVendor from '../services/axiosInstanceVenndor';
 import CreatePostModal from './CreatePostModal';
 import EditProfileModal from './EditProfileModal';
+import { useNavigate } from 'react-router-dom';
 
 const VendorLogo = ({ vendorId }) => {
   console.log(vendorId)
+  const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false);  
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [vendor,setVendor] = useState([]);
   const availableServices = ['Photography', 'Videography', 'Catering', 'Decorations'];
   
   console.log(vendor)
-  useEffect(() => {
-    const fetchVendor = async () => {
-      try {
-        const response = await axiosInstanceVendor.get(`/${vendorId}`);
-        console.log(response.data);
-        setVendor(response.data); 
-      } catch (error) {
-        console.error('Error fetching getposts:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchVendor = async () => {
+  //     try {
+  //       const response = await axiosInstanceVendor.get(`/${vendorId}`);
+  //       console.log(response.data);
+  //       setVendor(response.data); 
+  //     } catch (error) {
+  //       console.error('Error fetching getposts:', error);
+  //     }
+  //   };
 
+  //   if (vendorId) {
+  //     fetchVendor();
+  //   }
+  // }, [vendorId]);
+
+  const fetchVendor = async () => {
+    try {
+      const response = await axiosInstanceVendor.get(`/${vendorId}`);
+      setVendor(response.data);
+    } catch (error) {
+      console.error('Error fetching vendor data:', error);
+    }
+  };
+
+  // Fetch vendor data on component mount or when vendorId changes
+  useEffect(() => {
     if (vendorId) {
       fetchVendor();
     }
   }, [vendorId]);
+
+  const bookingDetails = () => {
+    navigate(`/vendor/bookings/${vendorId}`)
+  }
 
 
   return (
@@ -57,7 +79,7 @@ const VendorLogo = ({ vendorId }) => {
             </div>
           </div>
           <div className="mt-4 flex justify-around">
-            <button className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md">Booking Details</button>
+            <button onClick={bookingDetails} className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md">Booking Details</button>
             <button
               className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md"
               onClick={() => setIsModalOpen(true)}
@@ -71,7 +93,7 @@ const VendorLogo = ({ vendorId }) => {
         </div>
       </div>
       <CreatePostModal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} />
-      <EditProfileModal isOpen={isEditModalOpen} onRequestClose={() => setIsEditModalOpen(false)} vendor={vendor} availableServices={availableServices} />
+      <EditProfileModal isOpen={isEditModalOpen} onRequestClose={() => setIsEditModalOpen(false)} vendor={vendor} availableServices={availableServices} onVendorUpdated={fetchVendor} />
     </div>
   );
 };
