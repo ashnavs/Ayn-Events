@@ -26,6 +26,7 @@ const handleSocketEvents = (io: Server) => {
           });
       
 
+
     // Handle sending messages (text only, image only, or both)
     socket.on('sendMessage', async (data) => {
       try {
@@ -74,6 +75,9 @@ const handleSocketEvents = (io: Server) => {
         socket.emit('error', { message: 'Error processing message' });
       }
     });
+   
+    
+    
 
     // Handle chat requests
     socket.on('chatRequest', async ({ userId, vendorId }) => {

@@ -7,6 +7,8 @@ import Header from '../../components/Header';
 import EmojiPicker from 'emoji-picker-react';
 import { GrEmoji } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
+import { IoAttachSharp } from "react-icons/io5";
+
 
 const UserChat = () => {
   const [activeChats, setActiveChats] = useState([]);
@@ -16,10 +18,14 @@ const UserChat = () => {
   const [vendorData, setVendorData] = useState(null);
   const [userData, setUserData] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+
 
   const { socket } = useSocket(); // Use socket from context
   const user = useSelector(selectUser);
   const userId = user.id;
+  console.log(userId)
 
   // Fetch active chats when userId changes
   useEffect(() => {
@@ -35,9 +41,11 @@ const UserChat = () => {
     fetchActiveChats();
   }, [userId]);
 
-  // Handle real-time message updates
+
   useEffect(() => {
     if (socket) {
+      console.log('Socket connected:', socket.id); // Check if the socket is connected
+  
       const handleReceiveMessage = (newMessage) => {
         console.log('Received message on frontend:', newMessage);
         setMessagesByRoom(prevMessagesByRoom => {
@@ -48,6 +56,7 @@ const UserChat = () => {
           };
         });
       };
+      
   
       socket.on('receiveMessage', handleReceiveMessage);
   
@@ -56,6 +65,8 @@ const UserChat = () => {
       };
     }
   }, [socket]);
+  
+  
   
 
   // Handle room selection and joining
@@ -71,34 +82,86 @@ const UserChat = () => {
     }
   }, [selectedRoom, socket]);
 
-  // Handle sending a new message
-  const handleSendMessage = () => {
-    console.log("Sending message...");
-    const senderId = userId;
-    if (selectedRoom && messageInput) {
-      const newMessage = {
-        roomId: selectedRoom,
-        sender: senderId,
-        content: messageInput,
-        senderModel: 'User',
-      };
 
-      socket.emit('sendMessage', newMessage);
-
-      setMessagesByRoom((prevMessagesByRoom) => {
-        const updatedMessages = {
-          ...prevMessagesByRoom,
-          [selectedRoom]: [
-            ...(prevMessagesByRoom[selectedRoom] || []),
-            newMessage,
-          ],
+  const handleSendMessage = async () => {
+    if (socket) {
+      if (selectedRoom && userId) {
+        const roomId = selectedRoom;
+        const sender = userId;
+        const senderModel = 'User';
+        
+        let fileData = null;
+        
+        if (selectedFile) {
+          try {
+            fileData = {
+              fileBase64: await convertFileToBase64(selectedFile),
+              fileName: selectedFile.name,
+              fileType: selectedFile.type,
+              fileUrl: URL.createObjectURL(selectedFile),
+            };
+          } catch (error) {
+            console.error('Error converting file to base64:', error);
+            return;
+          }
+        }
+        
+        const messageData = {
+          roomId,
+          sender,
+          content: messageInput,
+          senderModel,
+          ...fileData,
         };
-        return updatedMessages;
-      });
-
-      setMessageInput('');
+  
+        try {
+          console.log('Sending message data:', messageData);
+          socket.emit('sendMessage', messageData);
+          if(messageData.senderModel !== 'User'){
+            setMessagesByRoom((prevMessagesByRoom) => {
+              const roomMessages = prevMessagesByRoom[roomId] || [];
+              return {
+                ...prevMessagesByRoom,
+                [roomId]: [...roomMessages, messageData],
+              };
+            });
+          }
+          
+  
+          setMessageInput('');
+          setShowEmojiPicker(false);
+          setSelectedFile(null);
+        } catch (error) {
+          console.error('Error sending message:', error);
+        }
+      } else {
+        console.error('Room ID or User ID is missing.');
+      }
+    } else {
+      console.error('Socket is not set.');
     }
   };
+
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]); // Extract base64 part
+      reader.onerror = (error) => reject(error);
+    });
+  };
+  
+  
+  
+
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+  
+  
+
 
   // Fetch messages and room details when a room is selected
   useEffect(() => {
@@ -146,10 +209,11 @@ const UserChat = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar for Active Rooms */}
+      {/* Sidebar for Active Chats */}
       <div className="w-1/4 border-r border-gray-200 p-4 bg-white">
         <h2 className="text-xl font-bold mb-4">Chats</h2>
         <div className="mb-4">
+          <h3 className="font-semibold">Active Chats</h3>
           {activeChats.length === 0 ? (
             <p className="text-gray-500">No active chats.</p>
           ) : (
@@ -159,44 +223,61 @@ const UserChat = () => {
                 className={`p-3 rounded-lg mb-3 cursor-pointer ${
                   selectedRoom === chat._id ? 'bg-blue-100' : 'bg-gray-50'
                 }`}
-                onClick={() => handleRoomSelect(chat._id)}
+                onClick={() => setSelectedRoom(chat._id)}
               >
-                {chat.users.map((user) => (
-                  <p key={user._id}>{user.name}</p>
-                ))}
+                <p>{chat.users.find((u) => u._id !== userId)?.name || "Unknown User"}</p>
               </div>
             ))
           )}
         </div>
       </div>
 
-      {/* Main Chat Area */}
+      {/* Chat Area */}
       <div className="flex-grow flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 bg-white">
-          <h3 className="text-lg font-bold">{vendorData ? vendorData.name : 'Vendor'}</h3>
-          <p className="text-gray-600">{userData ? userData.name : 'User'}</p>
-        </div>
-
         {/* Messages Display */}
         <div className="flex-grow overflow-y-auto p-4">
           {selectedRoom ? (
-            Array.isArray(messagesByRoom[selectedRoom]) ? (
-              messagesByRoom[selectedRoom].map((msg, index) => (
+            (messagesByRoom[selectedRoom] || []).length > 0 ? (
+              (messagesByRoom[selectedRoom] || []).map((msg) => (
                 <div
-                  key={`${msg._id}-${index}`}
-                  className={`mb-2 p-2 rounded-lg max-w-xs ${msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'}`}
+                  key={msg._id} // Unique key for each message
+                  className={`mb-2 p-2 rounded-lg max-w-xs ${
+                    msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
+                  }`}
                 >
-                  {msg.content}
+                  {msg.content && <p>{msg.content}</p>}
+                  {msg.fileUrl && msg.fileType.startsWith('video/') ? (
+                    <video
+                      controls
+                      src={msg.fileUrl}
+                      className="mt-2 max-w-full h-auto rounded-lg"
+                      style={{ maxHeight: '300px' }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : msg.fileUrl && msg.fileType === 'application/pdf' ? (
+                    <a
+                      href={msg.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block mt-2 text-blue-500"
+                    >
+                      {msg.fileName}
+                    </a>
+                  ) : msg.fileUrl ? (
+                    <img
+                      src={msg.fileUrl}
+                      alt={msg.fileName}
+                      className="mt-2 max-w-full h-auto rounded-lg"
+                    />
+                  ) : null}
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No messages available.</p>
+              <p>No messages yet.</p>
             )
           ) : (
-            <div className="flex-grow flex items-center justify-center text-gray-500">
-              Select a room to start messaging.
-            </div>
+            <p>Select a chat to start messaging</p>
           )}
         </div>
 
@@ -205,40 +286,45 @@ const UserChat = () => {
           <div className="p-4 border-t border-gray-200 flex items-center space-x-2">
             <button
               className="p-2 bg-[#ccc89b] rounded-full hover:bg-[#ccc89b]"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
             >
               <GrEmoji />
             </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-20 z-10">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
             <input
               type="text"
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
-              placeholder="Type a message"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleSendMessage();
-                }
-              }}
+              placeholder="Type a message..."
+              className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+              id="fileUpload"
+            />
+            <label htmlFor="fileUpload" className="cursor-pointer p-2 bg-[#ccc89b] rounded-full hover:bg-[#a39f74]">
+              <IoAttachSharp />
+            </label>
             <button
-              className="bg-[#a39f74] text-white p-2 rounded-full hover:bg-[#ccc89b]"
               onClick={handleSendMessage}
+              className="bg-[#a39f74] text-white p-2 rounded-full hover:bg-[#ccc89b]"
             >
               <IoIosSend />
             </button>
           </div>
         )}
       </div>
-
-      {/* Emoji Picker */}
-      {showEmojiPicker && (
-        <div className="absolute bottom-16 right-8 z-10">
-          <EmojiPicker onEmojiClick={handleEmojiClick} />
-        </div>
-      )}
     </div>
   );
+  
+  
 };
 
 export default UserChat;

@@ -287,14 +287,23 @@ const VendorChat = () => {
                     msg.senderModel === 'Vendor' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
                   }`}
                 >
-                  {msg.content && <p>{msg.content}</p>}
-                  {msg.fileUrl && (
+                   {msg.content && <p>{msg.content}</p>}
+                  {msg.fileUrl && msg.fileType === 'application/pdf' ? (
+                    <a
+                      href={msg.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block mt-2 text-blue-500"
+                    >
+                    {msg.fileName}
+                    </a>
+                  ) : msg.fileUrl ? (
                     <img
                       src={msg.fileUrl}
                       alt={msg.fileName}
                       className="mt-2 max-w-full h-auto rounded-lg"
                     />
-                  )}
+                  ) : null}
                 </div>
               ))
             ) : (
