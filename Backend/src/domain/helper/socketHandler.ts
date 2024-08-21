@@ -5,6 +5,8 @@ import mongoose from 'mongoose';
 import Message from '../../infrastructure/database/dbmodel/MessageModel';
 import ChatModel from '../../infrastructure/database/dbmodel/chatModel';
 import { uploadToS3 } from '../../utils/s3Uploader';
+import { v4 as uuidv4 } from 'uuid';
+
 
 const handleSocketEvents = (io: Server) => {
   io.on('connection', (socket: Socket) => {
@@ -31,23 +33,23 @@ const handleSocketEvents = (io: Server) => {
     socket.on('sendMessage', async (data) => {
       try {
         console.log('Received message data:', data);
-        
-        // Handle text message
-        if (data.content) {
+    
+        if (data.content && data.content.trim()) {
+          // Handle text message
           const message = new Message({
             chat: data.roomId,
             sender: data.sender,
             content: data.content,
             senderModel: data.senderModel,
+            messageId: uuidv4(), // Adding unique messageId for each message
           });
-
+    
           const savedMessage = await message.save();
           io.to(data.roomId).emit('receiveMessage', savedMessage);
           console.log('Message saved and sent:', savedMessage);
-        }
-
-        // Handle file uploads
-        if (data.fileBase64) {
+    
+        } else if (data.fileBase64) {
+          // Handle file uploads
           const buffer = Buffer.from(data.fileBase64, 'base64');
           const uniqueFileName = `${Date.now()}-${data.fileName}`;
           const file = {
@@ -55,7 +57,7 @@ const handleSocketEvents = (io: Server) => {
             originalname: uniqueFileName,
             mimetype: data.fileType,
           };
-
+    
           const { Location } = await uploadToS3(file);
           const newMessage = await Message.create({
             chat: data.roomId,
@@ -65,16 +67,22 @@ const handleSocketEvents = (io: Server) => {
             fileName: data.fileName,
             fileType: data.fileType,
             isFile: true,
+            messageId: uuidv4(), // Adding unique messageId for each message
           });
-
+    
           io.to(data.roomId).emit('receiveMessage', newMessage);
           console.log(`File uploaded and sent to room ${data.roomId}: ${data.fileName}`);
+    
+        } else {
+          console.log('No content or file to send.');
+          socket.emit('error', { message: 'Message content is empty.' });
         }
       } catch (error) {
         console.error('Error processing message:', error);
         socket.emit('error', { message: 'Error processing message' });
       }
     });
+    
    
     
     

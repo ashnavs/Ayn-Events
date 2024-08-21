@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axiosInstanceUser from '../../services/axiosInstanceUser';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../features/auth/authSlice';
@@ -19,13 +19,13 @@ const UserChat = () => {
   const [userData, setUserData] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-
-
+  const [filePreview, setFilePreview] = useState(null); // State for image preview
 
   const { socket } = useSocket(); // Use socket from context
   const user = useSelector(selectUser);
   const userId = user.id;
-  console.log(userId)
+
+  const messagesEndRef = useRef(null);
 
   // Fetch active chats when userId changes
   useEffect(() => {
@@ -42,32 +42,32 @@ const UserChat = () => {
   }, [userId]);
 
 
+
   useEffect(() => {
+    const handleReceiveMessage = (newMessage) => {
+      console.log('Received message on frontend:', newMessage);
+
+      setMessagesByRoom(prevMessagesByRoom => {
+        const roomMessages = prevMessagesByRoom[newMessage.chat] || [];
+        return {
+          ...prevMessagesByRoom,
+          [newMessage.chat]: [...roomMessages, newMessage],
+        };
+      });
+    };
+
     if (socket) {
-      console.log('Socket connected:', socket.id); // Check if the socket is connected
-  
-      const handleReceiveMessage = (newMessage) => {
-        console.log('Received message on frontend:', newMessage);
-        setMessagesByRoom(prevMessagesByRoom => {
-          const roomMessages = prevMessagesByRoom[newMessage.chat] || [];
-          return {
-            ...prevMessagesByRoom,
-            [newMessage.chat]: [...roomMessages, newMessage],
-          };
-        });
-      };
-      
-  
       socket.on('receiveMessage', handleReceiveMessage);
-  
+
       return () => {
         socket.off('receiveMessage', handleReceiveMessage);
       };
     }
   }, [socket]);
-  
-  
-  
+
+
+
+
 
   // Handle room selection and joining
   useEffect(() => {
@@ -83,15 +83,25 @@ const UserChat = () => {
   }, [selectedRoom, socket]);
 
 
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom(); // Call this whenever the messages in the room update
+  }, [messagesByRoom, selectedRoom]);
+
   const handleSendMessage = async () => {
     if (socket) {
       if (selectedRoom && userId) {
         const roomId = selectedRoom;
         const sender = userId;
         const senderModel = 'User';
-        
+
         let fileData = null;
-        
+
         if (selectedFile) {
           try {
             fileData = {
@@ -105,7 +115,7 @@ const UserChat = () => {
             return;
           }
         }
-        
+
         const messageData = {
           roomId,
           sender,
@@ -113,24 +123,28 @@ const UserChat = () => {
           senderModel,
           ...fileData,
         };
-  
+
         try {
           console.log('Sending message data:', messageData);
           socket.emit('sendMessage', messageData);
-          if(messageData.senderModel !== 'User'){
-            setMessagesByRoom((prevMessagesByRoom) => {
-              const roomMessages = prevMessagesByRoom[roomId] || [];
-              return {
-                ...prevMessagesByRoom,
-                [roomId]: [...roomMessages, messageData],
-              };
-            });
-          }
-          
-  
+
+          // Add message to local state
+          // setMessagesByRoom(prevMessagesByRoom => {
+          //   const roomMessages = prevMessagesByRoom[roomId] || [];
+          //   return {
+          //     ...prevMessagesByRoom,
+          //     [roomId]: [...roomMessages, messageData],
+          //   };
+          // });
+
+          // Clear input fields
           setMessageInput('');
-          setShowEmojiPicker(false);
           setSelectedFile(null);
+          setFilePreview(null); // Clear image preview
+          setShowEmojiPicker(false);
+
+          // Clear file input
+          document.getElementById('fileUpload').value = '';
         } catch (error) {
           console.error('Error sending message:', error);
         }
@@ -150,18 +164,20 @@ const UserChat = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-  
-  
-  
 
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+
+      // Generate image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
-  
-  
-
 
   // Fetch messages and room details when a room is selected
   useEffect(() => {
@@ -173,7 +189,7 @@ const UserChat = () => {
 
           const messages = response.data.messages || [];
 
-          setMessagesByRoom((prevMessagesByRoom) => ({
+          setMessagesByRoom(prevMessagesByRoom => ({
             ...prevMessagesByRoom,
             [selectedRoom]: messages,
           }));
@@ -203,9 +219,11 @@ const UserChat = () => {
   };
 
   const handleEmojiClick = (emojiObject) => {
-    setMessageInput((prevInput) => prevInput + emojiObject.emoji);
+    setMessageInput(prevInput => prevInput + emojiObject.emoji);
     setShowEmojiPicker(false); // Hide emoji picker after selecting an emoji
   };
+
+
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -217,15 +235,14 @@ const UserChat = () => {
           {activeChats.length === 0 ? (
             <p className="text-gray-500">No active chats.</p>
           ) : (
-            activeChats.map((chat) => (
+            activeChats.map(chat => (
               <div
                 key={chat._id}
-                className={`p-3 rounded-lg mb-3 cursor-pointer ${
-                  selectedRoom === chat._id ? 'bg-blue-100' : 'bg-gray-50'
-                }`}
-                onClick={() => setSelectedRoom(chat._id)}
+                className={`p-3 rounded-lg mb-3 cursor-pointer ${selectedRoom === chat._id ? 'bg-blue-100' : 'bg-gray-50'
+                  }`}
+                onClick={() => handleRoomSelect(chat._id)}
               >
-                <p>{chat.users.find((u) => u._id !== userId)?.name || "Unknown User"}</p>
+                <p>{chat.users.find(u => u._id !== userId)?.name || "Unknown User"}</p>
               </div>
             ))
           )}
@@ -238,12 +255,11 @@ const UserChat = () => {
         <div className="flex-grow overflow-y-auto p-4">
           {selectedRoom ? (
             (messagesByRoom[selectedRoom] || []).length > 0 ? (
-              (messagesByRoom[selectedRoom] || []).map((msg) => (
+              (messagesByRoom[selectedRoom] || []).map(msg => (
                 <div
                   key={msg._id} // Unique key for each message
-                  className={`mb-2 p-2 rounded-lg max-w-xs ${
-                    msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
-                  }`}
+                  className={`mb-2 p-2 rounded-lg max-w-xs ${msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
+                    }`}
                 >
                   {msg.content && <p>{msg.content}</p>}
                   {msg.fileUrl && msg.fileType.startsWith('video/') ? (
@@ -279,14 +295,15 @@ const UserChat = () => {
           ) : (
             <p>Select a chat to start messaging</p>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Message Input */}
         {selectedRoom && (
-          <div className="p-4 border-t border-gray-200 flex items-center space-x-2">
+          <div className="p-4 border-t border-gray-200 flex items-center space-x-2 relative">
             <button
               className="p-2 bg-[#ccc89b] rounded-full hover:bg-[#ccc89b]"
-              onClick={() => setShowEmojiPicker((prev) => !prev)}
+              onClick={() => setShowEmojiPicker(prev => !prev)}
             >
               <GrEmoji />
             </button>
@@ -318,13 +335,25 @@ const UserChat = () => {
             >
               <IoIosSend />
             </button>
+            {filePreview && (
+              <div className="absolute bottom-16 right-16 bg-white p-2 border rounded-lg shadow-md">
+                <img src={filePreview} alt="Preview" className="max-w-xs max-h-32" />
+                <button
+                  onClick={() => setFilePreview(null)}
+                  className="text-red-500 mt-1"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
     </div>
   );
-  
-  
 };
 
 export default UserChat;
+
+
+
