@@ -13,6 +13,10 @@ import eventBookingModel from "../../infrastructure/database/dbmodel/eventBookin
 import { UpdateVendorData } from "../../domain/entities/types/vendorTypes";
 import ChatModel from "../../infrastructure/database/dbmodel/chatModel";
 import Message from "../../infrastructure/database/dbmodel/MessageModel";
+import walletModel from "../../infrastructure/database/dbmodel/walletModel";
+import { Users } from "../../infrastructure/database/dbmodel/userModel";
+import mongoose, { ObjectId } from 'mongoose';
+
 
 export default{
     vendorRegister: async(req:Request , res:Response, next:NextFunction) => {
@@ -148,9 +152,9 @@ export default{
         console.log(req.body,image,'posts');
 
         const postData = {vendorId,description,image};
-        await vendorInteractor.createPost(postData);
+        const savedPost = await vendorInteractor.createPost(postData);
     
-        return res.status(200).json({messgae: 'post added successfully'})
+        return res.status(200).json({messgae: 'post added successfully',post:savedPost})
         
       } catch (error:any) {
         res.status(500).json({ error: 'Failed to add post' });
@@ -217,18 +221,64 @@ export default{
         res.status(500).json({ message: 'Internal server error' });
       }
     },
-    updateBookingStatus:async(req:Request,res:Response) => {
+    // updateBookingStatus:async(req:Request,res:Response) => {
+    //   const { id } = req.params; // Extract booking ID from request parameters
+    //   const { status } = req.body; 
+    //   console.log("bookID:",id)
+    //   console.log("status:",status)
+
+    //   try {
+    //     const booking = await eventBookingModel.findByIdAndUpdate(id, {status} , {new:true});
+    //     if (!booking) {
+    //       return res.status(404).json({ message: 'Booking not found' });
+    //     }
+    //     res.status(200).json(booking)
+    //   } catch (error) {
+    //     console.error('Error updating booking status:', error);
+    //     res.status(500).json({ message: 'Internal server error' });
+    //   }
+    // },
+
+    updateBookingStatus: async (req: Request, res: Response) => {
       const { id } = req.params; // Extract booking ID from request parameters
       const { status } = req.body; 
-      console.log("bookID:",id)
-      console.log("status:",status)
-
+      console.log('id:',id)
+      console.log('status:',status)
+    
       try {
-        const booking = await eventBookingModel.findByIdAndUpdate(id, {status} , {new:true});
+        // Find and update the booking status
+        const booking = await eventBookingModel.findByIdAndUpdate(id, { status }, { new: true });
         if (!booking) {
           return res.status(404).json({ message: 'Booking not found' });
         }
-        res.status(200).json(booking)
+    
+        // If the booking is rejected, update the user's wallet
+        if (status === 'Rejected') {
+          const userId = booking.user; // Assuming booking.user stores the user ID
+          const amount = booking.amount;
+    
+          // Find the user's wallet
+          const wallet = await walletModel.findOne({ userId });
+          if (!wallet) {
+            return res.status(404).json({ message: 'Wallet not found' });
+          }
+    
+          // Update wallet balance
+          wallet.balance += amount;
+    
+          // Add a new transaction record
+          wallet.transactions.push({
+            amount,
+            type: 'credit',
+            date: new Date(),
+            booking: booking._id as mongoose.Types.ObjectId, // Reference to the booking
+          });
+    
+          // Save the updated wallet
+          await wallet.save();
+        }
+    
+        res.status(200).json(booking);
       } catch (error) {
         console.error('Error updating booking status:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -285,7 +335,7 @@ export default{
       try {
         const vendorCounts = await Vendor.countDocuments(); ;
         console.log('Vendor count retrieved:', vendorCounts); // Log the count
-        res.json({vendorCounts });
+        res.json(vendorCounts );
       } catch (error) {
         console.error('Failed to fetch vendor count:', error); // More specific error log
         res.status(500).json({ message: 'Failed to fetch vendor count' });

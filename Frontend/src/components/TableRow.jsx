@@ -35,24 +35,25 @@ const TableRow = ({ bookingId, date, username, vendorname, event, status, paymen
       <div className="w-1/6 flex space-x-2">
         {isUserSide ? (
           <button 
-            className="bg-red-500 text-white px-2 py-1 rounded"
+            className={`bg-red-500 text-white px-2 py-1 rounded ${status === 'Cancelled' || status === 'Rejected' ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => onStatusCancel(bookingId, 'Cancelled')}
+            disabled={status === 'Cancelled' || status === 'Rejected'}
           >
             Cancel
           </button>
         ) : (
           <>
             <button 
-              className={`bg-[#a39f74] text-white px-2 py-1 rounded ${status === 'Cancelled' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`bg-[#a39f74] text-white px-2 py-1 rounded ${status === 'Cancelled' || status === 'Rejected' ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={() => onStatusChange(bookingId, 'Accepted')}
               disabled={status === 'Cancelled'}
             >
               Accept
             </button>
             <button 
-              className={`bg-red-500 text-white px-2 py-1 rounded ${status === 'Cancelled' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`bg-red-500 text-white px-2 py-1 rounded ${status === 'Cancelled' || status === 'Rejected' ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={() => onStatusChange(bookingId, 'Rejected')}
-              disabled={status === 'Cancelled'}
+              disabled={status === 'Cancelled' || status === 'Rejected'}
             >
               Reject
             </button>

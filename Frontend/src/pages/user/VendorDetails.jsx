@@ -16,6 +16,7 @@ const VendorDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userHasBooking, setUserHasBooking] = useState(false);
+  const [reviews, setReviews] = useState([]);
   const user = useSelector(selectUser);
   const userId = user?.id;
 
@@ -33,6 +34,11 @@ const VendorDetails = () => {
             setUserHasBooking(true);
           }
         }
+
+        const reviewResponse = await axiosInstanceUser.get(`/getreviews?vendorId=${id}`);
+        console.log('reviewResponse:',reviewResponse)
+        setReviews(reviewResponse.data);
+
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch vendor details:', error);
@@ -61,13 +67,17 @@ const VendorDetails = () => {
       <Header />
       <VendorLogos />
       <ImageGrid vendorId={vendor._id} />
-      <div className="mx-auto p-10 bg-[#cbc8af87]">
-        {userHasBooking && <ReviewForm vendorId={vendor._id} />}
-      </div>
-      <div className="mx-auto p-10 bg-[#f0ece3]">
-        <h2 className="text-2xl font-semibold mb-4">Reviews & Ratings</h2>
-        <ReviewList vendorId={vendor._id} />
-      </div>
+      {userHasBooking && (
+        <div className="mx-auto p-10 bg-[#cbc8af87]">
+          <ReviewForm vendorId={vendor._id} />
+        </div>
+      )}
+      {reviews.length > 0 && (
+        <div className="mx-auto p-10 bg-[#f0ece3]">
+          <h2 className="text-2xl font-semibold mb-4">Reviews & Ratings</h2>
+          <ReviewList vendorId={vendor._id} />
+        </div>
+      )}
       <Footer />
     </div>
   );

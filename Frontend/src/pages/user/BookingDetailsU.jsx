@@ -44,25 +44,46 @@ function BookingDetailsU() {
         fetchBookingData();
       }, []);
 
+      // const handleStatusChange = async (bookingId, newStatus) => {
+      //   try {
+      //     const response = await axiosInstanceUser.patch(`/bookings/${bookingId}/cancel`, { status: newStatus });
+      //     setBookingData(prevData =>
+      //       prevData.map(item =>
+      //         item.bookingId === bookingId ? { ...item, status: newStatus } : item
+      //       )
+      //     );
+      //   } catch (error) {
+      //     console.error('Error updating status:', error);
+      //   }
+      // };
+
       const handleStatusChange = async (bookingId, newStatus) => {
         try {
           const response = await axiosInstanceUser.patch(`/bookings/${bookingId}/cancel`, { status: newStatus });
-          setBookingData(prevData =>
-            prevData.map(item =>
-              item.bookingId === bookingId ? { ...item, status: newStatus } : item
-            )
-          );
+      
+          if (response.status === 200) {
+            setBookingData(prevData =>
+              prevData.map(item =>
+                item.bookingId === bookingId ? { ...item, status: newStatus, isConfirmed: false } : item
+              )
+            );
+            if (newStatus === 'cancelled') {
+              alert('Booking cancelled successfully and amount credited to your wallet.');
+            }
+          }
         } catch (error) {
           console.error('Error updating status:', error);
+          alert('Failed to update booking status. Please try again later.');
         }
       };
+      
 
   return (
     <div className="h-screen flex flex-col">
       <Header />
       <div className="flex flex-grow overflow-hidden">
         <ProfileSidebar />
-        <div className="flex-grow  overflow-y-auto">
+        <div className="flex-grow  overflow-y-auto ml-64">
         <div className="p-8">
         <h1 className="text-2xl font-bold mb-4">Booking Details</h1>
         <Table data={bookingData} isUserSide={true} onStatusCancel={handleStatusChange}/>

@@ -19,6 +19,9 @@ import Chat from '../../components/Chat '
 import UserChat from '../../pages/user/UserChat'
 import VendorLists from '../../pages/user/VendorLists'
 import BookingDetailView from '../../components/BookingDetailView'
+import Wallet from '../../pages/user/Wallet'
+import WalletPage from '../../pages/user/Wallet'
+import FavoritesPage from '../../pages/user/Favorites'
 
 
 
@@ -49,6 +52,9 @@ const UserRoutes = () => {
                     <Route path="/change-password" element={<ChangePassword/>} />
                     <Route path="/chat" element={<UserChat/>} />
                     <Route path='/bookingdetails/:bookingId' element={<BookingDetailView isUserSide={true}/>} />
+                    <Route path="/wallet" element={<WalletPage/>} />
+                    <Route path="/favorites" element={<FavoritesPage/>} />
+
 
 
                 </Route>

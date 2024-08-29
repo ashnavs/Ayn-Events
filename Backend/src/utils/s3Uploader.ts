@@ -24,7 +24,13 @@ const s3Client = new S3Client({
 });
 
 export const uploadToS3 = async (file: { buffer: Buffer; originalname: string; mimetype: string }): Promise<{ Location: string }> => {
-  const uniqueFileName = `${uuidv4()}-${file.originalname}`;
+ 
+  
+  // Debug log to check file object
+  console.log('File object:', file);
+
+  const sanitizedFileName = file.originalname?.replace(/[^a-zA-Z0-9.]/g, '_') || 'default_filename';
+  const uniqueFileName = `${uuidv4()}-${sanitizedFileName}`;;
 
   const uploadParams = {
     Bucket: AWS_BUCKET_NAME,

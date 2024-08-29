@@ -1,16 +1,20 @@
 
 
+
 import { Server, Socket } from 'socket.io';
 import mongoose from 'mongoose';
 import Message from '../../infrastructure/database/dbmodel/MessageModel';
 import ChatModel from '../../infrastructure/database/dbmodel/chatModel';
 import { uploadToS3 } from '../../utils/s3Uploader';
 import { v4 as uuidv4 } from 'uuid';
+ // Add this at the top with other imports
 
 
 const handleSocketEvents = (io: Server) => {
   io.on('connection', (socket: Socket) => {
     console.log(`Socket connected: ${socket.id}`);
+
+    
 
     // Join room
     socket.on('join_room', async (room) => {
@@ -18,21 +22,18 @@ const handleSocketEvents = (io: Server) => {
         console.error(`Invalid chat ID: ${room}`);
         return;
       }
+      
       socket.join(room);
       console.log(`Socket ${socket.id} joined room ${room}`);
     });
 
-    socket.on('message', (message) => {
-            console.log('Message received on server:', message);
-            io.to(message.roomId).emit('message', message); // Broadcast to room
-          });
-      
 
-
-    // Handle sending messages (text only, image only, or both)
+    //sndmsgnew
     socket.on('sendMessage', async (data) => {
       try {
         console.log('Received message data:', data);
+    
+        let savedMessage;
     
         if (data.content && data.content.trim()) {
           // Handle text message
@@ -41,13 +42,10 @@ const handleSocketEvents = (io: Server) => {
             sender: data.sender,
             content: data.content,
             senderModel: data.senderModel,
-            messageId: uuidv4(), // Adding unique messageId for each message
+            messageId: uuidv4(),
           });
     
-          const savedMessage = await message.save();
-          io.to(data.roomId).emit('receiveMessage', savedMessage);
-          console.log('Message saved and sent:', savedMessage);
-    
+          savedMessage = await message.save();
         } else if (data.fileBase64) {
           // Handle file uploads
           const buffer = Buffer.from(data.fileBase64, 'base64');
@@ -57,9 +55,12 @@ const handleSocketEvents = (io: Server) => {
             originalname: uniqueFileName,
             mimetype: data.fileType,
           };
+
+         
+        
     
           const { Location } = await uploadToS3(file);
-          const newMessage = await Message.create({
+          const message = new Message({
             chat: data.roomId,
             sender: data.sender,
             senderModel: data.senderModel,
@@ -67,29 +68,88 @@ const handleSocketEvents = (io: Server) => {
             fileName: data.fileName,
             fileType: data.fileType,
             isFile: true,
-            messageId: uuidv4(), // Adding unique messageId for each message
+            messageId: uuidv4(),
           });
     
-          io.to(data.roomId).emit('receiveMessage', newMessage);
-          console.log(`File uploaded and sent to room ${data.roomId}: ${data.fileName}`);
+          savedMessage = await message.save();
+        } else if (data.audio) {
+          // Handle voice message
+          // const buffer = Buffer.from(data.audio, 'base64');
+          console.log('Audio data received:', data.audio);
+const buffer = Buffer.from(data.audio, 'base64');
+console.log('Buffer created:', buffer);
+
+          const uniqueFileName = `${Date.now()}-${data.voiceFileName}`;
+          const file = {
+            buffer,
+            originalname: uniqueFileName,
+            mimetype: data.voiceFileType || 'audio/webm', // Default MIME type if undefined
+        };
+
+          console.log('file:',file)
     
+          const { Location } = await uploadToS3(file);
+          const message = new Message({
+            chat: data.roomId,
+            sender: data.sender,
+            senderModel: data.senderModel,
+            fileUrl: Location,
+            fileName: data.voiceFileName,
+            fileType: data.voiceFileType,
+            isFile: true,
+            isVoice: true, // Mark it as a voice message
+            messageId: uuidv4(),
+          });
+    
+          savedMessage = await message.save();
         } else {
           console.log('No content or file to send.');
           socket.emit('error', { message: 'Message content is empty.' });
+          return;
         }
+    
+        // Emit the saved message to the room
+        io.to(data.roomId).emit('receiveMessage', savedMessage);
+        console.log('Message saved and sent:', savedMessage);
       } catch (error) {
         console.error('Error processing message:', error);
         socket.emit('error', { message: 'Error processing message' });
       }
     });
+
+    // Handle deleting a message
+    socket.on('deleteMessage', async (messageId) => {
+      try {
+        console.log('Received delete request for message ID:', messageId);
     
-   
+        // Find and delete the message by its _id field
+        const deletedMessage = await Message.findByIdAndDelete(messageId);
+        
+        if (!deletedMessage) {
+          console.error('Message not found:', messageId);
+          socket.emit('error', { message: 'Message not found' });
+          return;
+        }
     
+        if (deletedMessage.chat) {
+          const chatId = deletedMessage.chat.toString();  // Ensure chatId is a string
+          io.to(chatId).emit('messageDeleted', messageId);  // Notify the room
+          console.log('Message deleted and notification sent:', messageId);
+        } else {
+          console.error('Deleted message or its chat is undefined');
+        }
+      } catch (error) {
+        console.error('Error deleting message:', error);
+        socket.emit('error', { message: 'Error deleting message' });
+      }
+    });
+    
+
     
 
     // Handle chat requests
-    socket.on('chatRequest', async ({ userId, vendorId }) => {
-      console.log('Chat request received:', { userId, vendorId });
+    socket.on('chatRequest', async ({ userId, vendorId, userName }) => {
+      console.log('Chat request received:', { userId, vendorId, userName });
       try {
         if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(vendorId)) {
           console.error('Invalid userId or vendorId:', { userId, vendorId });
@@ -111,6 +171,7 @@ const handleSocketEvents = (io: Server) => {
         socket.to(vendorId).emit('chatRequest', {
           from: userId,
           roomId,
+          userName,
           message: 'Chat request received',
         });
 
@@ -149,6 +210,35 @@ const handleSocketEvents = (io: Server) => {
       }
     });
 
+    // Mark messages as read
+    socket.on('messageRead', async ({ roomId, userId }) => {
+      try {
+        await Message.updateMany(
+          { chat: roomId, sender: { $ne: userId }, read: false },
+          { $set: { read: true } }
+        );
+    
+        const updatedMessages = await Message.find({ chat: roomId });
+        io.to(roomId).emit('messagesUpdated', updatedMessages);
+    
+        // Send updated unread count to the user
+        const unreadCount = await Message.countDocuments({
+          chat: roomId,
+          sender: { $ne: userId },
+          read: false,
+        });
+        io.to(userId).emit('unreadCount', { roomId, unreadCount });
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    });
+    
+
+    // Typing indicator
+    socket.on('typing', (data) => {
+      socket.to(data.roomId).emit('typing', data);
+    });
+
     // Handle socket disconnection
     socket.on('disconnect', () => {
       console.log(`Socket disconnected: ${socket.id}`);
@@ -157,3 +247,4 @@ const handleSocketEvents = (io: Server) => {
 };
 
 export default handleSocketEvents;
+

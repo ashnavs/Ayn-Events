@@ -123,7 +123,7 @@ const AddService = () => {
   }, [currentPage, admin]); 
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-800">
+    <div className="flex bg-gray-100 dark:bg-gray-800">
       <Sidebar />
 
       <div className="flex-1 p-6">

@@ -3,6 +3,7 @@ import userController from '../controllers/userController';
 import { protectUser } from '../frameworks/webserver/middleware/userAuthMiddleware';
 import vendorController from '../controllers/vendorController';
 import chatController  from '../controllers/chatController';
+import favoritesController from '../controllers/favoritesController';
 
 
 
@@ -39,6 +40,9 @@ userRouter.patch('/:roomId/accept',chatController.acceptChatRequest)
 userRouter.get('/active-chats/:userId',userController.getActiveChats)
 userRouter.get('/messages/:roomId',userController.getMessagesByRoomId)
 userRouter.get('/rooms/:roomId',userController.getMessagesByRoomId)
+userRouter.get('/wallet/:userId',userController.getWallets)
+userRouter.get('/favorites/:userId' , favoritesController.getFavorites)
+// userRouter.get('/reviews',userController.getReviews)
 // userRouter.post()
 
 

@@ -9,7 +9,7 @@ function UserProfile() {
       <Header />
       <div className="flex flex-grow overflow-hidden">
         <ProfileSidebar />
-        <div className="flex-grow  overflow-y-auto">
+        <div className="flex-grow  overflow-y-auto ml-64 p-6">
           <ProfileEdit />
         </div>
       </div>

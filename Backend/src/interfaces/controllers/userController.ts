@@ -20,6 +20,11 @@ import { Encrypt } from "../../domain/helper/hashPassword";
 import { getServiceImages } from "../../infrastructure/repositories/mongoServiceRepository";
 import ChatModel from "../../infrastructure/database/dbmodel/chatModel";
 import Message from "../../infrastructure/database/dbmodel/MessageModel";
+import walletModel from "../../infrastructure/database/dbmodel/walletModel";
+import { ConnectContactLens } from "aws-sdk";
+import mongoose, { ObjectId } from 'mongoose';
+import {isAfter , subWeeks} from 'date-fns'
+import { Favorite } from "../../infrastructure/database/dbmodel/favoritesModel";
 
 
 
@@ -447,23 +452,156 @@ export default {
         res.status(500).json({ message: 'Internal server error' });
       }
     },
-    updateBookingStatus:async(req:Request,res:Response) => {
-      const { bookingId } = req.params; // Extract booking ID from request parameters
-      const { status } = req.body; 
-      console.log("bookID:",bookingId)
-      console.log("status:",status)
+    //   updateBookingStatus:async(req:Request,res:Response) => {
+    //   const { bookingId } = req.params; // Extract booking ID from request parameters
+    //   const { status } = req.body; 
+    //   console.log("bookID:",bookingId)
+    //   console.log("status:",status)
 
-      try {
-        const booking = await eventBookingModel.findByIdAndUpdate(bookingId, {status} , {new:true});
-        if (!booking) {
-          return res.status(404).json({ message: 'Booking not found' });
-        }
-        res.status(200).json(booking)
-      } catch (error) {
-        console.error('Error updating booking status:', error);
-        res.status(500).json({ message: 'Internal server error' });
+    //   try {
+    //     const booking = await eventBookingModel.findByIdAndUpdate(bookingId, {status} , {new:true});
+    //     if (!booking) {
+    //       return res.status(404).json({ message: 'Booking not found' });
+    //     }
+    //     res.status(200).json(booking)
+    //   } catch (error) {
+    //     console.error('Error updating booking status:', error);
+    //     res.status(500).json({ message: 'Internal server error' });
+    //   }
+    // },
+
+// updateBookingStatus : async (req: Request, res: Response) => {
+//   const { bookingId } = req.params; // Extract booking ID from request parameters
+//   const { status } = req.body;
+
+//   console.log("bookID:", bookingId);
+//   console.log("status:", status);
+
+//   try {
+//     // Find and update the booking status
+//     const booking = await eventBookingModel.findByIdAndUpdate(bookingId, { status }, { new: true });
+//     if (!booking) {
+//       return res.status(404).json({ message: 'Booking not found' });
+//     }
+
+//     // Ensure the user ID is retrieved correctly
+//     const userId = booking.user.toString();
+//     console.log("userID:", userId);
+
+//     // If the booking is canceled, credit the amount back to the user's wallet
+//     if (status === 'Cancelled') {
+//       const wallet = await walletModel.findOne({ userId });
+
+//       if (!wallet) {
+//         console.log("Wallet not found, creating new wallet...");
+
+//         // Create a new wallet if it doesn't exist
+//         const newWallet = new walletModel({
+//           userId,
+//           balance: booking.payment.amount,
+//           transactions: [{
+//             amount: booking.payment.amount,
+//             type: 'credit',
+//             date: new Date(),
+//           }],
+//         });
+
+//         const savedWallet = await newWallet.save();
+//         console.log("New wallet created:", savedWallet);
+
+//       } else {
+//         console.log("Wallet found, updating balance...");
+
+//         // Add the amount to the existing wallet
+//         wallet.balance += booking.payment.amount;
+//         wallet.transactions.push({
+//           amount: booking.payment.amount,
+//           type: 'credit',
+//           date: new Date(),
+//         });
+
+//         const updatedWallet = await wallet.save();
+//         console.log("Wallet updated:", updatedWallet);
+//       }
+//     }
+
+//     res.status(200).json(booking);
+//   } catch (error) {
+//     console.error('Error updating booking status:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// },
+
+updateBookingStatus:async (req: Request, res: Response) => {
+  const { bookingId } = req.params; // Extract booking ID from request parameters
+  const { status } = req.body;
+
+  try {
+    // Find the booking
+    const booking = await eventBookingModel.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Update the booking status
+    booking.status = status;
+    await booking.save();
+
+    // Handle wallet update if the booking is canceled
+    if (status === 'Cancelled') {
+      const userId = booking.user.toString(); // Ensure userId is a string
+      const amount = booking.payment.amount;
+      const eventDate = new Date(booking.date);
+      const currentDate = new Date();
+      
+      // Calculate refund amount based on the cancellation time
+      let refundAmount = 0;
+      const weeksBeforeEvent = (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24 * 7); // Convert to weeks
+
+      if (weeksBeforeEvent >= 2 && weeksBeforeEvent < 3) {
+        refundAmount = amount * 0.30; // 30% of the amount
+      } else if (weeksBeforeEvent >= 3) {
+        refundAmount = amount * 0.50; // 50% of the amount
       }
-    },
+
+      if (refundAmount > 0) {
+        // Find or create the user's wallet
+        let wallet = await walletModel.findOne({ userId });
+
+        if (!wallet) {
+          wallet = new walletModel({
+            userId,
+            balance: refundAmount,
+            transactions: [{
+              amount: refundAmount,
+              type: 'credit',
+              date: new Date(),
+              booking: booking._id as mongoose.Types.ObjectId,  // Type assertion
+            }],
+          });
+
+          await wallet.save();
+        } else {
+          wallet.balance += refundAmount;
+          wallet.transactions.push({
+            amount: refundAmount,
+            type: 'credit',
+            date: new Date(),
+            booking: booking._id as mongoose.Types.ObjectId,  // Type assertion
+          });
+
+          await wallet.save();
+        }
+      }
+    }
+
+    res.status(200).json(booking);
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+},
+
     changePassword:async(req:Request,res:Response) => {
       const {currentPassword,newPassword,userId} = req.body
       console.log(currentPassword,newPassword,userId)
@@ -574,7 +712,52 @@ export default {
           res.status(500).send('Server error');
         }
       }
-    }
+    },
+    // getWallets:async(req:Request,res:Response) => {
+    //   try {
+    //     // Extract userId from req.params
+    //     const { userId } = req.params;
+    //     console.log(userId, "Received userId");
+    
+    //     const walletData = await walletModel.findOne({ userId }); // Adjust as per your schema
+
+    //     if (!walletData) {
+    //       return res.status(404).json({ message: 'Wallet not found' });
+    //     }
+    
+    //     // Send the wallet data as response
+    //     res.json(walletData);
+    //   } catch (error) {
+    //     console.error('Error fetching wallet data:', error);
+    //     res.status(500).json({ message: 'Internal Server Error' });
+    //   }
+    // }
+
+     getWallets : async (req: Request, res: Response) => {
+      try {
+        const { userId } = req.params;
+        console.log(userId, "Received userId");
+    
+        const walletData = await walletModel.findOne({ userId })
+          .populate({
+            path: 'transactions.booking',
+            model: 'Booking',
+            select: 'event_name vendor_name'
+          });
+
+          console.log('walletData:',walletData)
+    
+        if (!walletData) {
+          return res.status(404).json({ message: 'Wallet not found' });
+        }
+    
+        res.json(walletData);
+      } catch (error) {
+        console.error('Error fetching wallet data:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+      }
+    },
+    
 
    
 

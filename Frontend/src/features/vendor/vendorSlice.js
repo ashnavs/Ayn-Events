@@ -97,6 +97,7 @@ export const checkAuth = createAsyncThunk(
           vendor:null,
           loading:false,
           error:null,
+          chatRequestCount: 0,
       },
       reducers: {
         setVendor(state, action) {
@@ -107,6 +108,9 @@ export const checkAuth = createAsyncThunk(
           state.loading = false;
           state.error = null;
         },
+        setChatRequestCount(state, action) {
+          state.chatRequestCount = action.payload;
+        }, 
       },
       extraReducers:(builder) => {
           builder
@@ -154,7 +158,7 @@ export const checkAuth = createAsyncThunk(
       }
     })
 
-    export const { setVendor, logoutVendor } = vendorSlice.actions;
+    export const { setVendor, logoutVendor, setChatRequestCount  } = vendorSlice.actions;
 
     export const selectVendor = (state) => state.vendor
     export default vendorSlice.reducer;

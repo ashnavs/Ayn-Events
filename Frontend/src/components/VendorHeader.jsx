@@ -23,7 +23,7 @@ const VendorHeader = () => {
   };
 
   return (
-    <header className="bg-[#CBC8AF] h-16 flex justify-between items-center px-4">
+    <header className="bg-[#CBC8AF] h-16 flex justify-between items-center px-4 sticky top-0 z-50">
       <div className="flex items-center">
         <span className="text-white font-serif text-4xl font-thin">
           AYN EVENTS<span className="font-sans text-xs"></span>

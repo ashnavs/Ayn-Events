@@ -25,6 +25,7 @@ vendorRouter.post('/signup' , vendorController.vendorRegister)
 vendorRouter.post('/otp-vendor', vendorController.verifyOTP);
 vendorRouter.post('/resend-otp',vendorController.resendOtp)
 vendorRouter.post('/login', vendorController.vendorLogin)
+vendorRouter.get('/count',vendorController.getVendorCount)
 // vendorRouter.post('/uploadlicense', upload.single('licenseDocument'), vendorController.licenseUpload);
 vendorRouter.post('/uploadlicense', upload, vendorController.licenseUpload);
 vendorRouter.post('/checkAuth',protectVendor,vendorController.checkAuth);
@@ -37,7 +38,6 @@ vendorRouter.delete('/deleteposts/:postId',vendorController.deletePost)
 vendorRouter.get('/bookings/:vendorId',vendorController.bookingDetails)
 vendorRouter.patch('/booking/:id',vendorController.updateBookingStatus)
 vendorRouter.get('/bookingdetails/:bookingId',vendorController.getBookingDetails)
-vendorRouter.get('/count',vendorController.getVendorCount)
 vendorRouter.get('/active-chats/:vendorId',vendorController.getActiveChats)
 vendorRouter.get('/messages/:chatId',vendorController.getMessages)
 

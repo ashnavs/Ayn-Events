@@ -1,6 +1,7 @@
 import mongoose, { Schema,  model, Document, models } from "mongoose";
 
 
+
 export interface IChatModel extends Document {
   users: mongoose.Types.ObjectId[];
   latestMessage: mongoose.Types.ObjectId;
@@ -9,6 +10,7 @@ export interface IChatModel extends Document {
   _id?: mongoose.Types.ObjectId;
   is_blocked: boolean;
   is_accepted: 'pending' | 'accepted' | 'rejected';
+  unreadCount:Map<string, number>; 
 }
 const ChatSchema: Schema = new Schema<IChatModel>(
   {
@@ -35,6 +37,7 @@ const ChatSchema: Schema = new Schema<IChatModel>(
       enum: ['pending', 'accepted', 'rejected'], // Define enum options
       default: 'pending', // Default value is 'pending'
     },
+    unreadCount: { type: Map, of: Number, default: {} },
   },
   {
     timestamps: true,

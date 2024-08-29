@@ -38,7 +38,7 @@ function ReportList() {
 
   // Adjust the filter logic to match the response structure
   const filteredReports = reports.filter(({ vendorName }) =>
-    vendorName.toLowerCase().includes(searchTerm.toLowerCase())
+    vendorName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

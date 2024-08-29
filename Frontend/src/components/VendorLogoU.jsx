@@ -2,6 +2,8 @@
     import { useParams } from 'react-router-dom';
     import axiosInstanceUser from '../services/axiosInstanceUser';
     import { FiStar } from 'react-icons/fi';
+    import { IoIosHeartEmpty } from "react-icons/io";
+    import axios from 'axios'
     import { Formik, Form, Field, ErrorMessage } from 'formik';
     import * as Yup from 'yup';
     import { toast } from 'sonner';
@@ -9,11 +11,14 @@
     import { selectUser } from '../features/auth/authSlice';
     import io from 'socket.io-client';
     import { useSocket } from '../services/socketProvider';
+    import { IoMdHeart } from "react-icons/io";
+
 
     const VendorLogos = () => {
       const {socket} = useSocket()
       const userId = useSelector(selectUser);
       const userid = userId.id
+      const userName = userId.name
       console.log(userId.id)
       const { id } = useParams();
       // const { id: vendorId } = useParams();
@@ -30,6 +35,7 @@
       const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
       const [bookingData, setBookingData] = useState(null);
       const [isAccepted, setIsAccepted] = useState('pending');
+      const [isFavorite, setIsFavorite] = useState(false); 
 
       useEffect(() => {
         const fetchVendorDetails = async () => {
@@ -60,6 +66,20 @@
           }
         };
       }, [socket]);
+
+      useEffect(() => {
+        const fetchFavoriteStatus = async () => {
+          try {
+            const response = await axios.get(`http://localhost:5000/api/favorites/status?vendorId=${id}&userId=${userid}`);
+            setIsFavorite(response.data.isFavorite);
+          } catch (error) {
+            console.error('Error fetching favorite status:', error);
+          }
+        };
+      
+        fetchFavoriteStatus();
+      }, [id, userid]);
+      
 
 
        
@@ -247,10 +267,40 @@
     
       const handleChatRequest = () => {
         if (socket) {
-          socket.emit('chatRequest', { userId: userid, vendorId: id });
+          socket.emit('chatRequest', { userId: userid, vendorId: id , userName:userName});
           console.log('Chat request sent');
         }
       };
+
+      // const handleFavoriteClick = async () => {
+      //   try {
+      //     const response = await axios.post('http://localhost:5000/api/favorites/addtofavorites', {
+      //       userId,  // Include userId in the request
+      //       vendorId: vendor._id,
+      //       isFavorite: !isFavorite,
+      //     });
+      //     if (response.status === 200) {
+      //       setIsFavorite(!isFavorite);
+      //     }
+      //   } catch (error) {
+      //     console.error('Error updating favorite status:', error);
+      //   }
+      // };
+      const handleFavoriteClick = async () => {
+        try {
+          const response = await axios.post('http://localhost:5000/api/favorites/addtofavorites', {
+            userId: userId,
+            vendorId: vendor._id,
+            isFavorite: !isFavorite,
+          });
+          if (response.status === 200) {
+            setIsFavorite(!isFavorite);
+          }
+        } catch (error) {
+          console.error('Error updating favorite status:', error);
+        }
+      };
+      
     
       
 
@@ -272,16 +322,29 @@
 
             <div className="relative p-5 bg-[#F0ECE3] transform translate-y-[-50%] mx-4 rounded-lg shadow-md">
               <div className="flex justify-between items-center">
+              
                 <div>
                   <h2 className="text-2xl font-bold">{vendor.name}</h2>
                   <p>{vendor.email}</p>
                   <p>{vendor.city}</p>
                   <p>{vendor.service}</p>
                 </div>
-                <div className="flex items-center rounded-full">
-                  {renderStars(vendor.rating)}
-                </div>
+                <div className="relative flex flex-col items-center">
+              <div className="absolute top-[-20px] ml-20">
+              <button
+                  className={`mb-2 ${isFavorite ? 'text-red-500' : 'text-gray-500'}`}
+                  onClick={handleFavoriteClick}
+                >
+                  {isFavorite ? <IoMdHeart size={24} /> : <IoIosHeartEmpty size={24} />}
+                </button>
               </div>
+              <div className="flex items-center rounded-full mt-6">
+                {renderStars(vendor.rating)}
+              </div>
+            </div>
+                
+              </div>
+             
 
               <div className="mt-4 flex justify-around">
                 {/* <button className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md"
@@ -527,6 +590,7 @@
               <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
                 <h2 className="text-xl font-bold mb-4">Payment</h2>
                 <p>Amount: ₹{bookingData?.payment?.amount || 0}</p>
+                <p>You have to pay the 50% token amount for booking.</p>
                 <div className="flex justify-end mt-4">
                   <button
                     type="button"

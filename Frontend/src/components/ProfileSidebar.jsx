@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaUser, FaBook, FaLock, FaHeart, FaPowerOff } from 'react-icons/fa';
+import { FaUser, FaBook, FaLock, FaHeart, FaPowerOff , FaWallet} from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../features/auth/authSlice';
 
@@ -8,7 +8,7 @@ function ProfileSidebar() {
   const user = useSelector(selectUser)
   const userId = user.id
   return (
-    <div className="w-64 bg-[#F8F4EF] h-screen flex flex-col justify-between">
+    <div className="w-64 bg-[#F8F4EF] flex flex-col justify-between fixed top-0 left-0 h-full shadow-lg">
       <div>
         <div className="text-2xl gray-800 font-bold p-4">My Account</div>
         <ul>
@@ -28,12 +28,16 @@ function ProfileSidebar() {
             <FaHeart className="mr-2 text-[#a39f74]" />
             <Link to="/favorites" className="text-gray-700 hover:text-gray-900">Favorites</Link>
           </li>
+          <li className="flex items-center p-4 hover:bg-[#eae7e1]">
+            <FaWallet className="mr-2 text-[#a39f74]" />
+            <Link to="/wallet" className="text-gray-700 hover:text-gray-900">Wallet</Link>
+          </li>
         </ul>
       </div>
-      <div className="flex items-center p-4 hover:bg-[#eae7e1]">
+      {/* <div className="flex items-center p-4 hover:bg-[#eae7e1]">
         <FaPowerOff className="mr-2 text-[#a39f74]" />
         <Link to="/logout" className="text-gray-700 hover:text-gray-900">Logout</Link>
-      </div>
+      </div> */}
     </div>
   );
 }

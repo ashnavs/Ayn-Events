@@ -54,6 +54,7 @@ const MessageSchema = new Schema(
     fileName: { type: String, default: "" }, // Store file name
     fileType: { type: String, default: "" }, // Store file type (image, video, etc.)
     isFile: { type: Boolean, default: false }, // Boolean flag to check if the message is a file
+    isVoice: { type: Boolean, default: false },
     chat: { type: Schema.Types.ObjectId, ref: "ChatModel" },
     read: { type: Boolean, default: false },
   },

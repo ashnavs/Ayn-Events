@@ -94,6 +94,7 @@ import connectDB from './infrastructure/config/db';
 import userRoutes from './interfaces/routes/userRoute';
 import adminRoutes from './interfaces/routes/adminRoute';
 import vendorRouter from './interfaces/routes/vendorRoute';
+import favoriteRouter from './interfaces/routes/favoriteRoute';
 import cookieParser from 'cookie-parser';
 import { Server } from 'socket.io';
 import handleSocketEvents from './domain/helper/socketHandler';
@@ -145,6 +146,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/vendor', vendorRouter);
 app.use('/api/messages', messageRouter)
+app.use('/api/favorites', favoriteRouter)
 
 
 // Start the server using the HTTP server instance
