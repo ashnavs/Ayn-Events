@@ -8,6 +8,7 @@ import { selectUser } from '../../features/auth/authSlice';
 function WalletPage() {
   const user = useSelector(selectUser);
   const userId = user.id;
+  console.log(userId)
   const [walletData, setWalletData] = useState(null);
 
   useEffect(() => {

@@ -2,7 +2,7 @@
 // import AdminLogin from '../../pages/admin/AdminLogin';
 import AddService from '../../pages/admin/AddService';
 import AdminLogin from '../../pages/admin/AdminLogin';
-import Dashboard from '../../pages/admin/Dashboard'
+import Dashboard from '../../pages/admin/Dashboard';
 import ReportDetail from '../../pages/admin/ReportDetails';
 import ReportList from '../../pages/admin/ReportList';
 import UserList from '../../pages/admin/UserList'

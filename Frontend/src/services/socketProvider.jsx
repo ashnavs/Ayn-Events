@@ -8,7 +8,7 @@ const socketContext = createContext(undefined);
 
 function SocketProvider({children}) {
     const [socket,setSocket] = useState(null);
-    const [unreadCount, setUnreadCount] = useState(0);
+
 
 
     useEffect(() => {

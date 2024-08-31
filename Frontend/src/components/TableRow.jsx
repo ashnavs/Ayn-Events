@@ -1,15 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import axiosInstanceUser from '../services/axiosInstanceUser';
+import ConfirmationModal from './ConfirmationModal';
 
 const TableRow = ({ bookingId, date, username, vendorname, event, status, paymentAmount, onStatusChange, isUserSide, onStatusCancel }) => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [actionType, setActionType] = useState('');
+  const [currentBookingId, setCurrentBookingId] = useState(null);
 
   const detailsUrl = isUserSide 
     ? `/bookingdetails/${bookingId}` 
     : `/vendor/bookingdetails/${bookingId}`;
 
+    const handleOpenModal = (type) => {
+      setActionType(type);
+      setCurrentBookingId(bookingId);
+      setIsModalOpen(true);
+    };
+  
+    const handleCloseModal = () => {
+      setIsModalOpen(false);
+      setActionType('');
+      setCurrentBookingId(null);
+    };
+  
+    const handleConfirmAction = () => {
+      if (actionType === 'Accept') {
+        onStatusChange(currentBookingId, 'Accepted');
+      } else if (actionType === 'Reject') {
+        onStatusChange(currentBookingId, 'Rejected');
+      } else if (actionType === 'Cancel') {
+        onStatusCancel(currentBookingId, 'Cancelled');
+      }
+      handleCloseModal();
+    };
+
   return (
+    <>
     <div className="flex items-center justify-between p-4 border-b border-gray-200">
       {/* Date */}
       <div className="w-1/6">
@@ -36,7 +65,7 @@ const TableRow = ({ bookingId, date, username, vendorname, event, status, paymen
         {isUserSide ? (
           <button 
             className={`bg-red-500 text-white px-2 py-1 rounded ${status === 'Cancelled' || status === 'Rejected' ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => onStatusCancel(bookingId, 'Cancelled')}
+            onClick={() => handleOpenModal('Cancel')}
             disabled={status === 'Cancelled' || status === 'Rejected'}
           >
             Cancel
@@ -45,14 +74,14 @@ const TableRow = ({ bookingId, date, username, vendorname, event, status, paymen
           <>
             <button 
               className={`bg-[#a39f74] text-white px-2 py-1 rounded ${status === 'Cancelled' || status === 'Rejected' ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => onStatusChange(bookingId, 'Accepted')}
+              onClick={() => handleOpenModal('Accept')}
               disabled={status === 'Cancelled'}
             >
               Accept
             </button>
             <button 
               className={`bg-red-500 text-white px-2 py-1 rounded ${status === 'Cancelled' || status === 'Rejected' ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => onStatusChange(bookingId, 'Rejected')}
+              onClick={() => handleOpenModal('Reject')}
               disabled={status === 'Cancelled' || status === 'Rejected'}
             >
               Reject
@@ -75,6 +104,16 @@ const TableRow = ({ bookingId, date, username, vendorname, event, status, paymen
         </Link>
       </div>
     </div>
+
+    {/* Confirmation Modal */}
+    <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmAction}
+        message={`Are you sure you want to ${actionType.toLowerCase()} this booking?`}
+      />
+
+    </>
   );
 };
 

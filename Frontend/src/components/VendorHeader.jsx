@@ -1,15 +1,43 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FiBell, FiLogOut } from 'react-icons/fi';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { clearVendor, checkAuth } from '../features/vendor/vendorSlice';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { Link } from 'react-router-dom';
-import { BsChatDotsFill } from 'react-icons/bs';
+import { updateUnreadCount } from '../features/chat/chatSlice';
+import { useSocket } from '../services/socketProvider';
+import { BsChatDotsFill } from 'react-icons/bs'
+
+
+
+
+
+
 
 const VendorHeader = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {socket} = useSocket();
+  const unreadCount = useSelector((state) => state.chat.unreadCount);
+
+
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('unreadCount', ({ unreadCount, recipient }) => {
+        if (recipient === 'Vendor') {
+          console.log('Vendor unread count received:', unreadCount);
+          dispatch(updateUnreadCount({ unreadCount }));
+        }
+      });
+  
+      return () => {
+        socket.off('unreadCount');
+      };
+    }
+  }, [socket, dispatch]);
+  
 
   const handleAuth = () => {
     console.log('call1');
@@ -40,9 +68,14 @@ const VendorHeader = () => {
           </button>
         </div> */}
         <Link to='/vendor/chat'>
-          <button className="focus:outline-none">
-            <BsChatDotsFill className="h-5 w-6 text-white" />
-          </button>
+        <button className="relative">
+          <BsChatDotsFill size={19} className='text-white' />
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500  text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </button>
         </Link>
         <button onClick={logOut} className="focus:outline-none">
           <FiLogOut className="h-6 w-6 text-white" />

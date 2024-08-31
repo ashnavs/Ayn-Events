@@ -381,31 +381,30 @@ export default {
   
       let vendors;
       if (!service && !city) {
-        // Fetch all vendors if no query parameters are provided
+        
         const result = await getVendorsWithService();
         vendors = result.vendors;
         console.log(vendors, "All vendors with services");
       } else {
-        // Fetch vendors based on query parameters
+        
         vendors = await Vendor.find(query, {
           _id: 1, name: 1, email: 1, city: 1, services: 1, is_blocked: 1
         }).lean();
         console.log(vendors, "Filtered vendors");
       }
   
-      // Extract unique service names from the filtered vendors
+    
       const serviceNames = [...new Set(vendors.flatMap(vendor => vendor.services.map(service => service.name)))];
   
-      // Fetch service images
+    
       const serviceImages = await getServiceImages(serviceNames);
       const serviceImagesMap = new Map(serviceImages.map(img => [img.name, img.imageUrl]));
   
-      // Map the service images to the vendors' services
       const vendorsWithImages = vendors.map(vendor => ({
         ...vendor,
         services: vendor.services.map(service => ({
           ...service,
-          imageUrl: serviceImagesMap.get(service.name) || '' // Default image URL if not found
+          imageUrl: serviceImagesMap.get(service.name) || '' 
         }))
       }));
   
@@ -444,7 +443,8 @@ export default {
       try {
         const bookings = await eventBookingModel.find({ user: userId })
           .populate('user')
-          .populate('vendor');
+          .populate('vendor')
+          .sort({_id: -1});
         console.log(bookings, "bookings");
         res.json(bookings);
       } catch (error) {
@@ -537,35 +537,34 @@ updateBookingStatus:async (req: Request, res: Response) => {
   const { status } = req.body;
 
   try {
-    // Find the booking
+
     const booking = await eventBookingModel.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Update the booking status
+  
     booking.status = status;
     await booking.save();
 
-    // Handle wallet update if the booking is canceled
+   
     if (status === 'Cancelled') {
-      const userId = booking.user.toString(); // Ensure userId is a string
+      const userId = booking.user.toString(); 
       const amount = booking.payment.amount;
       const eventDate = new Date(booking.date);
       const currentDate = new Date();
-      
-      // Calculate refund amount based on the cancellation time
+   
       let refundAmount = 0;
-      const weeksBeforeEvent = (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24 * 7); // Convert to weeks
+      const weeksBeforeEvent = (eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24 * 7);
 
       if (weeksBeforeEvent >= 2 && weeksBeforeEvent < 3) {
-        refundAmount = amount * 0.30; // 30% of the amount
+        refundAmount = amount * 0.30; 
       } else if (weeksBeforeEvent >= 3) {
-        refundAmount = amount * 0.50; // 50% of the amount
+        refundAmount = amount * 0.50; 
       }
 
       if (refundAmount > 0) {
-        // Find or create the user's wallet
+       
         let wallet = await walletModel.findOne({ userId });
 
         if (!wallet) {
@@ -576,18 +575,20 @@ updateBookingStatus:async (req: Request, res: Response) => {
               amount: refundAmount,
               type: 'credit',
               date: new Date(),
-              booking: booking._id as mongoose.Types.ObjectId,  // Type assertion
+              booking: booking._id as mongoose.Types.ObjectId,  
             }],
           });
 
           await wallet.save();
+
+          console.log('wall',wallet)
         } else {
           wallet.balance += refundAmount;
           wallet.transactions.push({
             amount: refundAmount,
             type: 'credit',
             date: new Date(),
-            booking: booking._id as mongoose.Types.ObjectId,  // Type assertion
+            booking: booking._id as mongoose.Types.ObjectId,  
           });
 
           await wallet.save();
@@ -657,7 +658,7 @@ updateBookingStatus:async (req: Request, res: Response) => {
         path: 'users',
         model: 'User',
         select: 'name',
-        match: { _id: { $ne: userId } } // Exclude the current user
+        match: { _id: { $ne: userId } }
       })
       .populate({
         path: 'users',
@@ -678,12 +679,12 @@ updateBookingStatus:async (req: Request, res: Response) => {
       console.log(roomId,'rmid')
     
       try {
-        // Find the chat document using the roomId
+      
         const chat = await ChatModel.findById(roomId)
-          .populate('users', 'name')  // Populate user details
+          .populate('users', 'name')  
           .populate({
             path: 'users',
-            match: { _id: { $ne: req.params.userId } }, // Exclude the current user
+            match: { _id: { $ne: req.params.userId } }, 
             select: 'name'
           })
           .exec();
@@ -692,15 +693,15 @@ updateBookingStatus:async (req: Request, res: Response) => {
           return res.status(404).json({ message: 'Chat not found' });
         }
     
-        // Fetch messages for the chat
+    
         const messages = await Message.find({ chat: roomId })
-          .populate('sender', 'name')  // Populate sender details (name)
+          .populate('sender', 'name')  
           .exec();
     
-        // Fetch vendor details if available
+        
         const vendors = await Vendor.find({ _id: { $in: chat.users } });
     
-        // Respond with chat details, messages, and vendors
+       
         res.json({
           chat,
           messages,
@@ -757,6 +758,15 @@ updateBookingStatus:async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal Server Error' });
       }
     },
+    getAllBookings:async(req:Request,res:Response) => {
+      try {
+        const booking = await eventBookingModel.find()
+        res.status(200).json(booking)
+      } catch (error) {
+        console.error('Error fetching bookings:' , error)
+        res.status(500).json({message:'Internal serevr error'})
+      }
+    }
     
 
    

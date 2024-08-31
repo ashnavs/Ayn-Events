@@ -5,6 +5,7 @@ import { combineReducers } from 'redux';
 import authReducer from '../features/auth/authSlice';
 import adminReducer from '../features/admin/adminslice';
 import vendorReducer from '../features/vendor/vendorSlice';
+import chatReducer from '../features/chat/chatSlice'
 
 const authPersistConfig = {
   key: 'auth',
@@ -21,14 +22,22 @@ const vendorPersistConfig = {
   storage,
 };
 
+const chatPersistConfig = { // Optional persistence for chat state
+  key: 'chat',
+  storage,
+};
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedAdminReducer = persistReducer(adminPersistConfig, adminReducer);
 const persistedVendorReducer = persistReducer(vendorPersistConfig, vendorReducer);
+const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer); // Persist chatSlice if required
+
 
 const rootReducer = combineReducers({
   auth: persistedAuthReducer,
   admin: persistedAdminReducer,
   vendor: persistedVendorReducer,
+  chat: persistedChatReducer, 
 });
 
 const store = configureStore({

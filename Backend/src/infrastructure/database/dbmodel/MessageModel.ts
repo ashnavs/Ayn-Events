@@ -56,6 +56,7 @@ const MessageSchema = new Schema(
     isFile: { type: Boolean, default: false }, // Boolean flag to check if the message is a file
     isVoice: { type: Boolean, default: false },
     chat: { type: Schema.Types.ObjectId, ref: "ChatModel" },
+    deleted: { type: Boolean, default: false },
     read: { type: Boolean, default: false },
   },
   { timestamps: true }

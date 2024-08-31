@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axiosInstanceUser from '../../services/axiosInstanceUser';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectUser } from '../../features/auth/authSlice';
 import { useSocket } from '../../services/socketProvider';
 import Header from '../../components/Header';
@@ -11,8 +11,12 @@ import { IoAttachSharp } from "react-icons/io5";
 import { format } from 'date-fns';
 import { MdDone, MdDoneAll } from 'react-icons/md';
 import { PiDotsThreeCircleVerticalBold } from "react-icons/pi";
+import { FaMicrophone, FaStop } from "react-icons/fa";
+import { resetUnreadCount } from '../../features/chat/chatSlice';
+
 
 const UserChat = () => {
+  const dispatch = useDispatch()
   const [activeChats, setActiveChats] = useState([]);
   const [messagesByRoom, setMessagesByRoom] = useState({});
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -28,6 +32,8 @@ const UserChat = () => {
   const [audioChunks, setAudioChunks] = useState([]); 
   const [dropdownVisible, setDropdownVisible] = useState({}); 
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [replyToMessage, setReplyToMessage] = useState(null);
+
 
   
 
@@ -55,6 +61,10 @@ const UserChat = () => {
       };
     }
   }, [socket, selectedRoom]);
+
+  // useEffect(() => {
+  //   dispatch(resetUnreadCount());
+  // }, [dispatch]);
 
   // Fetch active chats when userId changes
   // useEffect(() => {
@@ -103,28 +113,21 @@ const UserChat = () => {
   
 
 
-
-  // useEffect(() => {
-  //   const handleReceiveMessage = (newMessage) => {
-  //     console.log('Received message on frontend:', newMessage);
-
-  //     setMessagesByRoom(prevMessagesByRoom => {
-  //       const roomMessages = prevMessagesByRoom[newMessage.chat] || [];
-  //       return {
-  //         ...prevMessagesByRoom,
-  //         [newMessage.chat]: [...roomMessages, newMessage],
-  //       };
-  //     });
-  //   };
-
-  //   if (socket) {
-  //     socket.on('receiveMessage', handleReceiveMessage);
-
-  //     return () => {
-  //       socket.off('receiveMessage', handleReceiveMessage);
-  //     };
-  //   }
-  // }, [socket]);
+  useEffect(() => {
+    if (socket) {
+      socket.on('unreadCount', (data) => {
+        setUnreadCounts(prevCounts => ({
+          ...prevCounts,
+          [data.roomId]: data.unreadCount,
+        }));
+      });
+  
+      return () => {
+        socket.off('unreadCount');
+      };
+    }
+  }, [socket]);
+  
 
 
   useEffect(() => {
@@ -152,7 +155,7 @@ const UserChat = () => {
       setActiveChats(prevChats => {
         const updatedChats = prevChats.map(chat => {
           if (chat._id === newMessage.chat) {
-            return { ...chat, latestMessage: newMessage };
+            return { ...chat, latestMessage: newMessage,unreadCount: unreadCounts[chat._id] || 0 };
           }
           return chat;
         });
@@ -175,9 +178,6 @@ const UserChat = () => {
     }
   }, [socket]);
 
-
-  
-  
 
 
   // Handle room selection and joining
@@ -204,23 +204,55 @@ const UserChat = () => {
     scrollToBottom(); // Call this whenever the messages in the room update
   }, [messagesByRoom, selectedRoom]);
 
+  // useEffect(() => {
+  //   if (socket && selectedRoom) {
+  //     socket.on('messageDeleted', (deletedMessageId) => {
+  //       console.log('Message deleted:', deletedMessageId); // Log deleted message ID
+  
+  //       setMessagesByRoom((prevMessagesByRoom) => {
+  //         console.log('Previous messages:', prevMessagesByRoom[selectedRoom]); // Log previous messages
+  //         const roomMessages = prevMessagesByRoom[selectedRoom] || [];
+  //         const updatedMessages = roomMessages.filter(msg => msg._id !== deletedMessageId);
+          
+  //         console.log('Updated messages:', updatedMessages); // Log updated messages
+          
+  //         return {
+  //           ...prevMessagesByRoom,
+  //           [selectedRoom]: updatedMessages,
+  //         };
+  //       });
+  //     });
+  
+  //     return () => {
+  //       socket.off('messageDeleted');
+  //     };
+  //   }
+  // }, [socket, selectedRoom]);
+
   useEffect(() => {
     if (socket && selectedRoom) {
-      socket.on('messageDeleted', (deletedMessageId) => {
-        console.log('Message deleted:', deletedMessageId); // Log deleted message ID
+      socket.on('messageDeleted', (data) => {
+        const { messageId } = data;
   
         setMessagesByRoom((prevMessagesByRoom) => {
-          console.log('Previous messages:', prevMessagesByRoom[selectedRoom]); // Log previous messages
-          const roomMessages = prevMessagesByRoom[selectedRoom] || [];
-          const updatedMessages = roomMessages.filter(msg => msg._id !== deletedMessageId);
-          
-          console.log('Updated messages:', updatedMessages); // Log updated messages
-          
+          const roomMessages = prevMessagesByRoom[selectedRoom] || [];  // Use selectedRoom directly
+          const updatedMessages = roomMessages.map((msg) => {
+            if (msg._id === messageId) {
+              return { ...msg, deleted: true }; // Mark the message as deleted
+            }
+            return msg;
+          });
+  
           return {
             ...prevMessagesByRoom,
             [selectedRoom]: updatedMessages,
           };
         });
+  
+        setDropdownVisible((prevState) => ({
+          ...prevState,
+          [messageId]: false,
+        }));
       });
   
       return () => {
@@ -228,6 +260,9 @@ const UserChat = () => {
       };
     }
   }, [socket, selectedRoom]);
+  
+  
+  
   
   
 
@@ -450,7 +485,7 @@ const playAudio = (voiceFileUrl) => {
   const handleRoomSelect = (roomId) => {
     setSelectedRoom(roomId);
 
-    setUnreadCounts(prevCounts => ({ ...prevCounts, [roomId]: 0 }));
+    setUnreadCounts(prevCounts => ({ ...prevCounts, [roomId]: 0}));
 
   
     // Mark the room as active and move it to the top of the list if needed
@@ -461,7 +496,7 @@ const playAudio = (voiceFileUrl) => {
         }
         return chat;
       });
-  
+      dispatch(resetUnreadCount());
       // Sort the chats so that the active ones are at the top
       return updatedChats.sort((a, b) => {
         const latestMessageA = a.latestMessage ? new Date(a.latestMessage.createdAt) : new Date(0);
@@ -531,6 +566,9 @@ const playAudio = (voiceFileUrl) => {
     }));
   };
   
+  const handleReply = (messageId) => {
+    setReplyToMessage(messageId);  // Set the message to reply to
+  };
 
 
 
@@ -563,11 +601,12 @@ const playAudio = (voiceFileUrl) => {
                   </p>
 
                   {/* Unread message count and indicator */}
-                  {unreadCounts[chat._id] > 0 && chat.latestMessage?.senderModel === 'Vendor' && (
-                    <span className="absolute top-4 right-4 bg-[#a39f74] text-white text-xs px-2 py-1 rounded-full unread-count">
-                      {unreadCounts[chat._id]}
-                    </span>
-                  )}
+                  {/* Unread message count and indicator */}
+          {unreadCounts[chat._id] > 0 && chat.latestMessage?.senderModel === 'Vendor' && (
+            <span className="absolute top-4 right-4 bg-[#a39f74] text-white text-xs px-2 py-1 rounded-full unread-count">
+              {unreadCounts[chat._id]}
+            </span>
+          )}
 
                   {/* Uncomment to show the time of the latest message */}
                   {/* <span className="text-gray-400 text-xs">
@@ -593,7 +632,7 @@ const playAudio = (voiceFileUrl) => {
             </div>
           )}
   
-          <div className="flex-grow overflow-y-auto p-4">
+          {/* <div className="flex-grow overflow-y-auto p-4">
             {selectedRoom ? (
               <>
                 {messagesByRoom[selectedRoom] && Array.isArray(messagesByRoom[selectedRoom]) ?
@@ -601,10 +640,10 @@ const playAudio = (voiceFileUrl) => {
                     messagesByRoom[selectedRoom].map(msg => (
                       <div
                       key={msg._id}
-                      className={`relative mb-2 p-2 rounded-lg max-w-xs ${msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
+                      className={`relative mb-2 p-2 rounded-lg max-w-fit ${msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
                         }`}
                     >
-                      {/* Dropdown Arrow */}
+                
                       <div className="absolute left-[-40px] top-1/2 transform -translate-y-1/2 z-10">
                         <PiDotsThreeCircleVerticalBold
                           className="cursor-pointer text-gray-500 hover:text-gray-700"
@@ -620,7 +659,10 @@ const playAudio = (voiceFileUrl) => {
                             </button>
                           </div>
                         )}
+                      
                       </div>
+
+                      
                     
                       {msg.content && <p>{msg.content}</p>}
                       {msg.fileUrl && msg.fileType.startsWith('video/') ? (
@@ -653,7 +695,7 @@ const playAudio = (voiceFileUrl) => {
                         <img
                           src={msg.fileUrl}
                           alt={msg.fileName}
-                          className="mt-2 max-w-full h-auto rounded-lg"
+                          className="mt-2 max-w-xs h-auto rounded-lg"
                           style={{ maxHeight: '300px' }}
                         />
                       ) : null}
@@ -674,19 +716,125 @@ const playAudio = (voiceFileUrl) => {
             ) : (
               <p>Select a chat to start messaging.</p>
             )}
-          </div>
+          </div> */}
+
+
+<div className="flex-grow overflow-y-auto p-4">
+  {selectedRoom ? (
+    <>
+      {messagesByRoom[selectedRoom] && Array.isArray(messagesByRoom[selectedRoom]) ? (
+        messagesByRoom[selectedRoom].length > 0 ? (
+          messagesByRoom[selectedRoom].map((msg) => (
+            <div
+              key={msg._id}
+              className={`relative mb-2 p-2 rounded-lg max-w-fit ${
+                msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
+              }`}
+            >
+              {/* Dropdown Arrow */}
+              {!msg.deleted && (
+                <div className="absolute left-[-40px] top-1/2 transform -translate-y-1/2 z-10">
+                  <PiDotsThreeCircleVerticalBold
+                    className="cursor-pointer text-gray-500 hover:text-gray-700"
+                    onClick={() => toggleDropdown(msg._id)}
+                  />
+                  {dropdownVisible[msg._id] && (
+                    <div className="absolute left-[-110px] top-0 mt-2 bg-white shadow-lg rounded-lg z-10">
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
+                        onClick={() => deleteMessage(msg._id)}
+                      >
+                        Delete
+                      </button>
+                      <button
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
+                      onClick={() => handleReply(messageId)}>Reply</button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Message Content */}
+              {msg.deleted ? (
+                <div className="text-gray-400 italic">This message was deleted</div>
+              ) : (
+                <>
+                  {msg.content && <p>{msg.content}</p>}
+                  {msg.fileUrl && msg.fileType.startsWith('video/') ? (
+                    <video
+                      controls
+                      src={msg.fileUrl}
+                      className="mt-2 max-w-full h-auto rounded-lg"
+                      style={{ maxHeight: '300px' }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : msg.fileUrl && msg.fileType === 'application/pdf' ? (
+                    <a
+                      href={msg.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block mt-2 text-blue-500"
+                    >
+                      {msg.fileName}
+                    </a>
+                  ) : msg.fileUrl && msg.fileType.startsWith('audio/') ? (
+                    <audio
+                      controls
+                      src={msg.fileUrl}
+                      className="mt-2 max-w-full rounded-lg"
+                    >
+                      Your browser does not support the audio element.
+                    </audio>
+                  ) : msg.fileUrl ? (
+                    <img
+                      src={msg.fileUrl}
+                      alt={msg.fileName}
+                      className="mt-2 max-w-xs h-auto rounded-lg"
+                      style={{ maxHeight: '300px' }}
+                    />
+                  ) : null}
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>{msg.createdAt ? format(new Date(msg.createdAt), 'p') : ''}</span>
+                    <span className="text-gray-400">{getMessageStatusIcon(msg)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          ))
+        ) : (
+          <p>No messages yet</p>
+        )
+      ) : (
+        <p>No messages yet.</p>
+      )}
+    </>
+  ) : (
+    <p>Select a chat to start messaging.</p>
+  )}
+</div>
+
+{replyToMessage && (
+  <div className="reply-preview">
+    <span>Replying to: {replyToMessage.content}</span>
+    <button onClick={() => setReplyToMessage(null)}>Cancel</button>
+  </div>
+)}
+
+
+          {typing && <p className="text-xs">Typing...</p>}
   
           {/* Message Input */}
           {selectedRoom && (
             <div className="p-4 border-t border-gray-200 flex items-center space-x-2 relative">
               <button
-                className="p-2 bg-[#ccc89b] rounded-full hover:bg-[#ccc89b]"
+                className="p-2 bg-[#a39f74] rounded-full hover:bg-[#ccc89b] text-white"
                 onClick={() => setShowEmojiPicker(prev => !prev)}
               >
                 <GrEmoji />
               </button>
               {showEmojiPicker && (
-                <div className="absolute bottom-20 z-10">
+                <div className="absolute bottom-20 z-10 ">
                   <EmojiPicker onEmojiClick={handleEmojiClick} />
                 </div>
               )}
@@ -695,7 +843,7 @@ const playAudio = (voiceFileUrl) => {
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a39f74]"
               />
               <input
                 type="file"
@@ -704,7 +852,7 @@ const playAudio = (voiceFileUrl) => {
                 className="hidden"
                 id="fileUpload"
               />
-              <label htmlFor="fileUpload" className="cursor-pointer p-2 bg-[#ccc89b] rounded-full hover:bg-[#a39f74]">
+              <label htmlFor="fileUpload" className="cursor-pointer p-2 bg-[#a39f74] rounded-full hover:bg-[#ccc89b] text-white">
                 <IoAttachSharp />
               </label>
               <button
@@ -712,8 +860,9 @@ const playAudio = (voiceFileUrl) => {
                 onMouseUp={stopRecording}
                 onTouchStart={startRecording}
                 onTouchEnd={stopRecording}
+                className={`p-2 rounded-full ${isRecording ? 'bg-red-500 text-white' : 'bg-[#a39f74] hover:bg-[#ccc89b] text-white'} hover:bg-[#a39f74]`}
               >
-                {isRecording ? 'Stop Recording' : 'Start Recording'}
+                 {isRecording ? <FaStop /> : <FaMicrophone />}
               </button>
   
               <button

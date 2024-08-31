@@ -1,5 +1,20 @@
 // src/components/Header.js
-import React from 'react';
+import React, { useEffect } from 'react';
+import { updateUnreadCount } from '../features/auth/chatSlice';
+
+useEffect(() => {
+  if (socket) {
+    socket.on('unreadCount', ({  unreadCount }) => {
+      console.log('Unread count received from server:', unreadCount); // Debugging line
+      dispatch(updateUnreadCount({  unreadCount }));
+    });
+
+    return () => {
+      console.log('Cleaning up socket unreadCount listener'); // Debugging line
+      socket.off('unreadCount');
+    };
+  }
+}, [socket, dispatch]);
 
 const Header = () => {
   return (

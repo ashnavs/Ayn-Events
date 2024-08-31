@@ -102,6 +102,8 @@ console.log('Buffer created:', buffer);
           });
     
           savedMessage = await message.save();
+
+          
         } else {
           console.log('No content or file to send.');
           socket.emit('error', { message: 'Message content is empty.' });
@@ -111,6 +113,26 @@ console.log('Buffer created:', buffer);
         // Emit the saved message to the room
         io.to(data.roomId).emit('receiveMessage', savedMessage);
         console.log('Message saved and sent:', savedMessage);
+
+         // Notify all connected users about unread messages
+    const unreadCounts = await Message.countDocuments({
+      // chat: data.roomId,
+      // sender: { $ne: data.sender },
+      senderModel:data.senderModel,
+      read: false,
+    });
+
+    // Emit unread count to all users in the room
+ 
+    if (data.senderModel === 'User') {
+      // Emit unread count to vendors (show in VendorHeader)
+      console.log("Calculated unread countu:", unreadCounts);
+      io.to(data.roomId).emit('unreadCount', { unreadCount: unreadCounts, recipient: 'Vendor' });
+    } else if (data.senderModel === 'Vendor') {
+      // Emit unread count to users (show in UserHeader)
+      console.log("Calculated unread countv:", unreadCounts);
+      io.to(data.roomId).emit('unreadCount', { unreadCount: unreadCounts, recipient: 'User' });
+    }
       } catch (error) {
         console.error('Error processing message:', error);
         socket.emit('error', { message: 'Error processing message' });
@@ -118,31 +140,64 @@ console.log('Buffer created:', buffer);
     });
 
     // Handle deleting a message
-    socket.on('deleteMessage', async (messageId) => {
-      try {
-        console.log('Received delete request for message ID:', messageId);
+    // socket.on('deleteMessage', async (messageId) => {
+    //   try {
+    //     console.log('Received delete request for message ID:', messageId);
     
-        // Find and delete the message by its _id field
-        const deletedMessage = await Message.findByIdAndDelete(messageId);
+    //     // Find and delete the message by its _id field
+    //     const deletedMessage = await Message.findByIdAndDelete(messageId);
         
-        if (!deletedMessage) {
-          console.error('Message not found:', messageId);
-          socket.emit('error', { message: 'Message not found' });
-          return;
-        }
+    //     if (!deletedMessage) {
+    //       console.error('Message not found:', messageId);
+    //       socket.emit('error', { message: 'Message not found' });
+    //       return;
+    //     }
     
-        if (deletedMessage.chat) {
-          const chatId = deletedMessage.chat.toString();  // Ensure chatId is a string
-          io.to(chatId).emit('messageDeleted', messageId);  // Notify the room
-          console.log('Message deleted and notification sent:', messageId);
-        } else {
-          console.error('Deleted message or its chat is undefined');
-        }
-      } catch (error) {
-        console.error('Error deleting message:', error);
-        socket.emit('error', { message: 'Error deleting message' });
-      }
-    });
+    //     if (deletedMessage.chat) {
+    //       const chatId = deletedMessage.chat.toString();  // Ensure chatId is a string
+    //       io.to(chatId).emit('messageDeleted', messageId);  // Notify the room
+    //       console.log('Message deleted and notification sent:', messageId);
+    //     } else {
+    //       console.error('Deleted message or its chat is undefined');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error deleting message:', error);
+    //     socket.emit('error', { message: 'Error deleting message' });
+    //   }
+    // });
+
+    //newdelete
+    // Handle deleting a message (mark as deleted instead of removing)
+socket.on('deleteMessage', async (messageId) => {
+  try {
+    console.log('Received delete request for message ID:', messageId);
+
+    // Find the message and update its `deleted` flag
+    const deletedMessage = await Message.findByIdAndUpdate(
+      messageId,
+      { deleted: true },
+      { new: true }
+    );
+
+    if (!deletedMessage) {
+      console.error('Message not found:', messageId);
+      socket.emit('error', { message: 'Message not found' });
+      return;
+    }
+
+    if (deletedMessage.chat) {
+      const chatId = deletedMessage.chat.toString();  // Ensure chatId is a string
+      io.to(chatId).emit('messageDeleted', { messageId, deleted: true });  // Notify the room with the deleted flag
+      console.log('Message marked as deleted and notification sent:', {messageId });
+    } else {
+      console.error('Message or its chat is undefined');
+    }
+  } catch (error) {
+    console.error('Error marking message as deleted:', error);
+    socket.emit('error', { message: 'Error deleting message' });
+  }
+});
+
     
 
     
@@ -222,12 +277,12 @@ console.log('Buffer created:', buffer);
         io.to(roomId).emit('messagesUpdated', updatedMessages);
     
         // Send updated unread count to the user
-        const unreadCount = await Message.countDocuments({
+        const unreadCounts = await Message.countDocuments({
           chat: roomId,
           sender: { $ne: userId },
           read: false,
         });
-        io.to(userId).emit('unreadCount', { roomId, unreadCount });
+        io.to(userId).emit('unreadCount', { roomId, unreadCounts });
       } catch (error) {
         console.error('Error marking messages as read:', error);
       }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../../services/socketProvider';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectVendor,setChatRequestCount  } from '../../features/vendor/vendorSlice';
+import { selectVendor, setChatRequestCount } from '../../features/vendor/vendorSlice';
+import { resetUnreadCount } from '../../features/chat/chatSlice';
 import { selectUser } from '../../features/auth/authSlice';
 import axiosInstanceVendor from '../../services/axiosInstanceVenndor';
 import EmojiPicker from 'emoji-picker-react';
@@ -12,6 +13,11 @@ import { IoAttachSharp } from "react-icons/io5";
 import VendorHeader from '../../components/VendorHeader';
 import { format } from 'date-fns';
 import { PiDotsThreeCircleVerticalBold } from "react-icons/pi";
+import { FaMicrophone, FaStop } from "react-icons/fa";
+
+
+
+
 
 const VendorChat = () => {
   const vendor = useSelector(selectVendor);
@@ -33,11 +39,11 @@ const VendorChat = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [typing, setTyping] = useState(false);
-  const [isRecording, setIsRecording] = useState(false); 
-  const [mediaRecorder, setMediaRecorder] = useState(null); 
-  const [audioChunks, setAudioChunks] = useState([]); 
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [dropdownVisible, setDropdownVisible] = useState({}); 
+  const [dropdownVisible, setDropdownVisible] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({});
 
 
@@ -54,11 +60,12 @@ const VendorChat = () => {
       const typingTimeout = setTimeout(() => {
         socket.emit('typing', { roomId: selectedChat._id, userId: vendorId });
       }, 500);
-  
+
       return () => clearTimeout(typingTimeout);
     }
   }, [messageInput, socket, selectedChat, vendorId]);
-  
+  console.log("activeChats", activeChats)
+
   useEffect(() => {
     if (socket) {
       socket.on('typing', (data) => {
@@ -67,13 +74,13 @@ const VendorChat = () => {
           setTimeout(() => setTyping(false), 2000); // Clear typing indicator after 2 seconds
         }
       });
-  
+
       return () => {
         socket.off('typing');
       };
     }
   }, [socket, selectedChat]);
-  
+
 
   useEffect(() => {
     if (socket) {
@@ -82,15 +89,15 @@ const VendorChat = () => {
         console.log(requestData)
         if (!activeChats.find((chat) => chat.from === data.from)) {
           setChatRequests((prevRequests) => [...prevRequests, requestData]);
-        dispatch(setChatRequestCount(chatRequests.length + 1));
-      }
+          dispatch(setChatRequestCount(chatRequests.length + 1));
+        }
       });
 
       return () => {
         socket.off('chatRequest');
       };
     }
-  }, [socket, vendor, selectedChat, activeChats,  dispatch, chatRequests.length]);
+  }, [socket, vendor, selectedChat, activeChats, dispatch, chatRequests.length]);
 
   // useEffect(() => {
   //   socket.on('message', (newMessage) => {
@@ -98,103 +105,149 @@ const VendorChat = () => {
   //   });
   // }, []);
 
-//   useEffect(() => {
-//     if (socket && selectedChat) {
-//         socket.on('receiveMessage', (message) => {
-//             console.log('Received message:', message);
-            
-//             // Only update messages if the message belongs to the selected chat
-//             if (message.chat === selectedChat._id) {
-//                 setMessagesByRoom((prevMessagesByRoom) => {
-//                     const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
-//                     return {
-//                         ...prevMessagesByRoom,
-//                         [selectedChat._id]: [...roomMessages, message],
-//                     };
-//                 });
-//             }
+  //   useEffect(() => {
+  //     if (socket && selectedChat) {
+  //         socket.on('receiveMessage', (message) => {
+  //             console.log('Received message:', message);
 
-//             setUnreadCounts(prevCounts => {
-//               const currentCount = prevCounts[message.chat] || 0;
-//               console.log('Updating unread count for room:', message.chat, 'Current count:', currentCount + 1);
-//               return { ...prevCounts, [message.chat]: currentCount + 1 };
-//             });
-//         });
+  //             // Only update messages if the message belongs to the selected chat
+  //             if (message.chat === selectedChat._id) {
+  //                 setMessagesByRoom((prevMessagesByRoom) => {
+  //                     const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
+  //                     return {
+  //                         ...prevMessagesByRoom,
+  //                         [selectedChat._id]: [...roomMessages, message],
+  //                     };
+  //                 });
+  //             }
 
-//         return () => {
-//             socket.off('receiveMessage');
-//         };
-//     }
-// }, [socket, selectedChat]);
+  //             setUnreadCounts(prevCounts => {
+  //               const currentCount = prevCounts[message.chat] || 0;
+  //               console.log('Updating unread count for room:', message.chat, 'Current count:', currentCount + 1);
+  //               return { ...prevCounts, [message.chat]: currentCount + 1 };
+  //             });
+  //         });
 
-useEffect(() => {
-  if (socket && selectedChat) {
-    socket.on('receiveMessage', (message) => {
-      console.log('Received message:', message);
-      
-      // Only update messages if the message belongs to the selected chat
-      if (message.chat === selectedChat._id) {
-        setMessagesByRoom((prevMessagesByRoom) => {
-          const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
-          return {
-            ...prevMessagesByRoom,
-            [selectedChat._id]: [...roomMessages, message],
-          };
-        });
-      }
+  //         return () => {
+  //             socket.off('receiveMessage');
+  //         };
+  //     }
+  // }, [socket, selectedChat]);
 
-      if (message.senderModel === 'User') {
-        setUnreadCounts(prevCounts => {
-          const currentCount = prevCounts[message.chat] || 0;
-          return { ...prevCounts, [message.chat]: currentCount + 1 };
-        });
-  
-      }
+  useEffect(() => {
+    if (socket && selectedChat) {
+      socket.on('receiveMessage', (message) => {
+        console.log('Received message:', message);
 
-      // Re-sort active chats based on the latest message timestamp
-      setActiveChats((prevChats) => {
-        const updatedChats = prevChats.map(chat => {
-          if (chat._id === message.chat) {
+        // Only update messages if the message belongs to the selected chat
+        if (message.chat === selectedChat._id) {
+          setMessagesByRoom((prevMessagesByRoom) => {
+            const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
             return {
-              ...chat,
-              latestMessage: message,
+              ...prevMessagesByRoom,
+              [selectedChat._id]: [...roomMessages, message],
             };
-          }
-          return chat;
-        });
+          });
+        }
 
-        // Sort the chats by the latest message's createdAt timestamp
-        return updatedChats.sort((a, b) => {
-          const latestMessageA = a.latestMessage?.createdAt || 0;
-          const latestMessageB = b.latestMessage?.createdAt || 0;
-          return new Date(latestMessageB) - new Date(latestMessageA);
+        if (message.senderModel === 'User') {
+          setUnreadCounts(prevCounts => {
+            const currentCount = prevCounts[message.chat] || 0;
+            return { ...prevCounts, [message.chat]: currentCount + 1 };
+          });
+
+        }
+
+        // Re-sort active chats based on the latest message timestamp
+        setActiveChats((prevChats) => {
+          const updatedChats = prevChats.map(chat => {
+            if (chat._id === message.chat) {
+              return {
+                ...chat,
+                latestMessage: message,
+              };
+            }
+            return chat;
+          });
+
+          // Sort the chats by the latest message's createdAt timestamp
+          return updatedChats.sort((a, b) => {
+            const latestMessageA = a.latestMessage?.createdAt || 0;
+            const latestMessageB = b.latestMessage?.createdAt || 0;
+            return new Date(latestMessageB) - new Date(latestMessageA);
+          });
         });
       });
-    });
 
-    return () => {
-      socket.off('receiveMessage');
-    };
-  }
-}, [socket, selectedChat]);
-
+      return () => {
+        socket.off('receiveMessage');
+      };
+    }
+  }, [socket, selectedChat]);
 
 
 
 
+
+
+  // useEffect(() => {
+  //   if (socket && selectedChat) {
+  //     socket.on('messageDeleted', (data) => {
+  //       console.log('Deleted message data:', data);
+  
+  //       const { messageId } = data; // Extract messageId from the data
+  
+  //       setMessagesByRoom((prevMessagesByRoom) => {
+  //         const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
+  //         const updatedMessages = roomMessages.map((msg) => {
+  //           if (msg._id === messageId) {
+  //             return { ...msg, deleted: true }; // Mark the message as deleted
+  //           }
+  //           return msg;
+  //         });
+  
+  //         return {
+  //           ...prevMessagesByRoom,
+  //           [selectedChat._id]: updatedMessages,
+  //         };
+  //       });
+  //     });
+  //     setDropdownVisible((prevState) => ({
+  //       ...prevState,
+  //       [messageId]: false,
+  //     }));
+  
+  //     return () => {
+  //       socket.off('messageDeleted');
+  //     };
+  //   }
+  // }, [socket, selectedChat]);
 
 useEffect(() => {
   if (socket && selectedChat) {
-    socket.on('messageDeleted', (deletedMessageId) => {
+    socket.on('messageDeleted', (data) => {
+      const { messageId } = data;
+
       setMessagesByRoom((prevMessagesByRoom) => {
         const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
-        const updatedMessages = roomMessages.filter(msg => msg._id !== deletedMessageId);
+        const updatedMessages = roomMessages.map((msg) => {
+          if (msg._id === messageId) {
+            return { ...msg, deleted: true }; // Mark the message as deleted
+          }
+          return msg;
+        });
 
         return {
           ...prevMessagesByRoom,
           [selectedChat._id]: updatedMessages,
         };
       });
+
+      // Hide the delete button after message is deleted
+      setDropdownVisible((prevState) => ({
+        ...prevState,
+        [messageId]: false,
+      }));
     });
 
     return () => {
@@ -206,6 +259,9 @@ useEffect(() => {
   
   
 
+
+
+
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -214,19 +270,19 @@ useEffect(() => {
 
   useEffect(() => {
     if (selectedChat && messagesByRoom[selectedChat._id]) {
-        scrollToBottom();
+      scrollToBottom();
     }
-}, [messagesByRoom[selectedChat?._id]]);
+  }, [messagesByRoom[selectedChat?._id]]);
 
 
-// Emitting delete request
-const deleteMessage = (messageId) => {
-  socket.emit('deleteMessage', messageId);
-};
+  // Emitting delete request
+  const deleteMessage = (messageId) => {
+    socket.emit('deleteMessage', messageId);
+  };
 
 
   const handleAcceptChat = (request) => {
-    if (socket ) {
+    if (socket) {
       const { roomId } = request;
       if (vendorId && roomId) {
         socket.emit('acceptChatRequest', { vendorId, roomId });
@@ -243,81 +299,81 @@ const deleteMessage = (messageId) => {
     }
   };
 
-//   const handleSendVoiceMessage = async () => {
-//     if (audioChunks.length > 0) {
-//         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-//         const file = new File([blob], `voice_message_${Date.now()}.webm`, { type: blob.type }); // Use Date.now() for a unique filename
-//         const reader = new FileReader();
+  //   const handleSendVoiceMessage = async () => {
+  //     if (audioChunks.length > 0) {
+  //         const blob = new Blob(audioChunks, { type: 'audio/webm' });
+  //         const file = new File([blob], `voice_message_${Date.now()}.webm`, { type: blob.type }); // Use Date.now() for a unique filename
+  //         const reader = new FileReader();
 
-//         reader.onloadend = () => {
-//             const base64AudioMessage = reader.result.split(',')[1];
+  //         reader.onloadend = () => {
+  //             const base64AudioMessage = reader.result.split(',')[1];
 
-//             socket.emit('sendMessage', {
-//                 roomId: selectedChat,
-//                 sender: vendorId,
-//                 senderModel: 'Vendor',
-//                 audio: base64AudioMessage,
-//                 voiceFileName: file.name,
-//                 voiceFileType: file.type,
-//             });
-//         };
+  //             socket.emit('sendMessage', {
+  //                 roomId: selectedChat,
+  //                 sender: vendorId,
+  //                 senderModel: 'Vendor',
+  //                 audio: base64AudioMessage,
+  //                 voiceFileName: file.name,
+  //                 voiceFileType: file.type,
+  //             });
+  //         };
 
-//         reader.readAsDataURL(file);
-//     }
-// };
-
-
-const handleSendVoiceMessage = (audioBase64) => {
-  socket.emit('sendMessage', {
-    roomId: selectedChat._id,  // Ensure selectedChat is used correctly
-    sender: vendorId,
-    senderModel: 'Vendor',
-    audio: audioBase64,  // Pass the base64 string of the audio
-    voiceFileName: `voice_message_${Date.now()}.webm`,
-    voiceFileType: 'audio/webm',
-  });
-};
+  //         reader.readAsDataURL(file);
+  //     }
+  // };
 
 
-const startRecording = () => {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      const recorder = new MediaRecorder(stream);
-      setMediaRecorder(recorder);
-
-      const newAudioChunks = [];
-      setAudioChunks(newAudioChunks);
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          newAudioChunks.push(event.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        const audioBlob = new Blob(newAudioChunks, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const audioBase64 = reader.result.split(',')[1];  // Extract base64 from DataURL
-          handleSendVoiceMessage(audioBase64);  // Send the audio data
-        };
-        reader.readAsDataURL(audioBlob);
-      };
-
-      recorder.start();
-      setIsRecording(true);
-    })
-    .catch(error => {
-      console.error('Error accessing media devices.', error);
+  const handleSendVoiceMessage = (audioBase64) => {
+    socket.emit('sendMessage', {
+      roomId: selectedChat._id,  // Ensure selectedChat is used correctly
+      sender: vendorId,
+      senderModel: 'Vendor',
+      audio: audioBase64,  // Pass the base64 string of the audio
+      voiceFileName: `voice_message_${Date.now()}.webm`,
+      voiceFileType: 'audio/webm',
     });
-};
+  };
 
-const stopRecording = () => {
-  if (mediaRecorder && isRecording) {
-    mediaRecorder.stop();
-    setIsRecording(false);
-  }
-};
+
+  const startRecording = () => {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        const recorder = new MediaRecorder(stream);
+        setMediaRecorder(recorder);
+
+        const newAudioChunks = [];
+        setAudioChunks(newAudioChunks);
+
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            newAudioChunks.push(event.data);
+          }
+        };
+
+        recorder.onstop = () => {
+          const audioBlob = new Blob(newAudioChunks, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const audioBase64 = reader.result.split(',')[1];  // Extract base64 from DataURL
+            handleSendVoiceMessage(audioBase64);  // Send the audio data
+          };
+          reader.readAsDataURL(audioBlob);
+        };
+
+        recorder.start();
+        setIsRecording(true);
+      })
+      .catch(error => {
+        console.error('Error accessing media devices.', error);
+      });
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
 
 
   const handleSendMessage = async () => {
@@ -325,21 +381,21 @@ const stopRecording = () => {
       const { _id: roomId } = selectedChat;
       const sender = vendorId;
       const senderModel = 'Vendor';
-  
+
       if (roomId && sender) {
         let fileBase64 = null;
         let fileUrl = null;
         let fileName = null;
-  
+
         if (selectedImage) {
           fileBase64 = await convertImageToBase64(selectedImage);
           fileUrl = URL.createObjectURL(selectedImage); // Create blob URL
           fileName = selectedImage.name;
-  
+
           // Optional: Revoke the URL after a timeout to avoid memory leaks
           setTimeout(() => URL.revokeObjectURL(fileUrl), 10000);
         }
-  
+
         const messageData = {
           roomId,
           sender,
@@ -351,10 +407,10 @@ const stopRecording = () => {
           fileType: selectedImage?.type,
           createdAt: new Date().toISOString(),
         };
-  
+
         try {
           socket.emit('sendMessage', messageData);
-  
+
           // setMessagesByRoom((prevMessagesByRoom) => {
           //   const roomMessages = prevMessagesByRoom[roomId] || [];
           //   return {
@@ -362,7 +418,7 @@ const stopRecording = () => {
           //     [roomId]: [...roomMessages, messageData],
           //   };
           // });
-  
+
           setMessageInput('');
           setShowEmojiPicker(false);
           setSelectedImage(null);
@@ -411,27 +467,32 @@ const stopRecording = () => {
     try {
       const response = await axiosInstanceVendor.get(`/messages/${chatId}`);
       const messages = response.data;
-  
+
       setMessagesByRoom((prevMessagesByRoom) => ({
         ...prevMessagesByRoom,
         [chatId]: messages,
       }));
-  
+
       const chat = activeChats.find(chat => chat._id === chatId);
       if (chat) {
         setSelectedChat(chat);
         socket.emit('join_room', chatId);
-  
+
         setUnreadCounts((prevCounts) => ({
           ...prevCounts,
           [chatId]: 0,
         }));
+
+        
+
+        
       }
+      dispatch(resetUnreadCount());
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
   };
-  
+
 
 
 
@@ -441,14 +502,14 @@ const stopRecording = () => {
         const response = await axiosInstanceVendor.get(`/active-chats/${vendorId}`);
         if (Array.isArray(response.data)) {
           const chats = response.data;
-  
+
           // Sort chats by latest message timestamp
           chats.sort((a, b) => {
             const latestMessageA = a.latestMessage?.createdAt || 0;
             const latestMessageB = b.latestMessage?.createdAt || 0;
             return new Date(latestMessageB) - new Date(latestMessageA);
           });
-  
+
           setActiveChats(chats);
         } else {
           console.error("API response is not an array:", response.data);
@@ -459,11 +520,11 @@ const stopRecording = () => {
         setActiveChats([]);
       }
     };
-  
+
     fetchActiveChats();
   }, [vendorId]);
-  
-  
+
+
 
   const handleEmojiClick = (emojiObject) => {
     setMessageInput((prevInput) => prevInput + emojiObject.emoji);
@@ -479,9 +540,9 @@ const stopRecording = () => {
   };
 
   const handleDeclineChat = (request) => {
-    if (socket ) {
+    if (socket) {
       const { roomId } = request;
-      socket.emit('declineChatRequest', {  vendorId, roomId });
+      socket.emit('declineChatRequest', { vendorId, roomId });
       setChatRequests((prevRequests) => prevRequests.filter((r) => r.roomId !== request.roomId));
     } else {
       console.error('User ID is missing.');
@@ -495,119 +556,99 @@ const stopRecording = () => {
       [messageId]: !prevState[messageId],
     }));
   };
-  
+
 
   return (
     <div>
-      <VendorHeader /> 
+      <VendorHeader />
       <div className="flex h-screen bg-gray-100">
         {/* Sidebar for Active Chats */}
         <div className="w-1/4 border-r border-gray-200 p-4 bg-white">
-  {/* <h2 className="text-xl font-bold mb-4">Chats</h2>
-  <div className="mb-4">
-    <h3 className="font-semibold">Active Chats</h3>
-    {activeChats.length === 0 ? (
-      <p className="text-gray-500">No active chats.</p>
-    ) : (
-      activeChats.map((chat) => {
-        const unreadCount = unreadCounts[chat._id] || 0;
-        return (
-          <div
-            key={chat._id}
-            className={`relative p-3 rounded-lg mb-3 cursor-pointer ${
-              selectedChat?._id === chat._id ? 'bg-blue-100' : 'bg-gray-50'
-            }`}
-            onClick={() => handleSelectedChat(chat._id)}
-          >
-            <p>{chat.users.find((u) => u._id !== vendorId)?.name || 'Chat'}</p>
-            {unreadCount > 0 && chat.latestMessage?.senderModel === 'Vendor' && (
-              <span className="absolute top-2 right-2 bg-[#a39f74] text-white text-xs px-2 py-1 rounded-full unread-count z-10">
-                {unreadCounts[chat._id]}
-              </span>
+
+
+
+          <h2 className="text-xl font-bold mb-4">Chats</h2>
+          <div className="mb-4">
+            <h3 className="font-semibold">Active Chats</h3>
+            {activeChats.length === 0 ? (
+              <p className="text-gray-500">No active chats.</p>
+            ) : (
+              activeChats.map((chat) => {
+                const unreadCount = unreadCounts[chat._id] || 0;
+                return (
+                  <div
+                    key={chat._id}
+                    className={`relative p-3 rounded-lg mb-3 cursor-pointer ${selectedChat?._id === chat._id ? 'bg-blue-100' : 'bg-gray-50'
+                      }`}
+                    onClick={() => handleSelectedChat(chat._id)}
+                  >
+                    <p>{chat.users.find((u) => u._id !== vendorId)?.name || 'Chat'}</p>
+                    {unreadCount > 0 && (
+                      <span className="absolute top-2 right-2 bg-[#a39f74] text-white text-xs px-2 py-1 rounded-full unread-count z-10">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+
             )}
           </div>
-        );
-      })
-      
-    )}
-  </div>
-
-  
-</div> */}
 
 
-<h2 className="text-xl font-bold mb-4">Chats</h2>
-<div className="mb-4">
-  <h3 className="font-semibold">Active Chats</h3>
-  {activeChats.length === 0 ? (
-    <p className="text-gray-500">No active chats.</p>
-  ) : (
-    activeChats.map((chat) => {
-      const unreadCount = unreadCounts[chat._id] || 0;
-      return (
-        <div
-          key={chat._id}
-          className={`relative p-3 rounded-lg mb-3 cursor-pointer ${
-            selectedChat?._id === chat._id ? 'bg-blue-100' : 'bg-gray-50'
-          }`}
-          onClick={() => handleSelectedChat(chat._id)}
-        >
-          <p>{chat.users.find((u) => u._id !== vendorId)?.name || 'Chat'}</p>
-          {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 bg-[#a39f74] text-white text-xs px-2 py-1 rounded-full unread-count z-10">
-              {unreadCount}
-              </span>
-            )}
-          </div>
-        );
-      })
-      
-    )}
-  </div>
-  
-        {/* Chat Requests */}
-        <h3 className="font-semibold">Chat Requests</h3>
-        {chatRequests.length === 0 ? (
-          <p className="text-gray-500">No chat requests.</p>
-        ) : (
-          chatRequests.map((request) => (
-            <div key={request.roomId} className="bg-white p-3 rounded-lg shadow mb-3">
-              <p className="font-semibold">User ID: {request.from}</p>
-              <div className="flex justify-between mt-2">
-                <button
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                  onClick={() => handleAcceptChat(request)}
-                >
-                  Accept
-                </button>
-                <button
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                  onClick={() => {/* handle decline logic */}}
-                >
-                  Decline
-                </button>
+          {/* Chat Requests */}
+          <h3 className="font-semibold">Chat Requests</h3>
+          {chatRequests.length === 0 ? (
+            <p className="text-gray-500">No chat requests.</p>
+          ) : (
+            chatRequests.map((request) => (
+              <div key={request.roomId} className="bg-white p-3 rounded-lg shadow mb-3">
+                <p className="font-semibold">User ID: {request.from}</p>
+                <div className="flex justify-between mt-2">
+                  <button
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                    onClick={() => handleAcceptChat(request)}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                    onClick={() => {/* handle decline logic */ }}
+                  >
+                    Decline
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
 
 
-  
+
         {/* Chat Area */}
         <div className="flex-grow flex flex-col">
           {/* Selected Chat Header */}
           {selectedChat && (
             <div className="bg-white border-b border-gray-200 p-4">
               <h3 className="text-lg font-semibold">
-                {activeChats.find(chat => chat._id === selectedChat)?.users.find(u => u._id !== vendorId)?.name || "Unknown User"}
+                {(() => {
+                  const chat = activeChats.find(chat => chat._id === selectedChat._id);
+                  console.log("Found chat:", chat); // Log the found chat to see if it exists
+                  return chat?.users?.[0]?.name || "Unknown User";
+                })()}
               </h3>
               <div className="h-2"> {/* Fixed height for the typing indicator */}
                 {typing && <p className="text-xs">Typing...</p>}
               </div>
             </div>
           )}
-          
+
+
+
+
+
+
+
           {/* Messages List */}
           <div className="flex-grow overflow-y-auto p-4">
             {selectedChat ? (
@@ -616,35 +657,44 @@ const stopRecording = () => {
                   (msg.content || msg.fileUrl) && (
                     <div
                       key={msg._id}
-                      
-                      className={`mb-2 p-2 rounded-lg min-w-24 w-fit ${msg.senderModel === 'Vendor' ? 'ml-auto bg-[#ccc89b]' : 'mr-auto bg-gray-200'}`}
+
+                      className={`mb-2 p-2 rounded-lg min-w-28 w-fit  ${msg.senderModel === 'Vendor' ? 'ml-auto bg-[#ccc89b]' : 'mr-auto bg-gray-200'}`}
                     >
                       <div className="relative">
-                        {/* Dropdown Arrow */}
-                        <div className="absolute left-[-40px] top-1/2 transform -translate-y-1/2 z-10">
-    <PiDotsThreeCircleVerticalBold
-      className="cursor-pointer text-gray-500 hover:text-gray-700"
-      onClick={() => toggleDropdown(msg._id)}
-    />
-    {dropdownVisible[msg._id] && (
-      <div className="absolute left-0 top-0 mt-6 bg-white shadow-lg rounded-lg z-10">
-        <button
-          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
-          onClick={() => deleteMessage(msg._id)}
-        >
-          Delete
-        </button>
-      </div>
-    )}
-  </div>
-                      {msg.isVoice ? (
-      <audio controls src={msg.fileUrl}>
-      Your browser does not support the audio element.
-    </audio>
+          
+              {(msg.senderModel === 'Vendor' || msg.senderModel === 'User') && (
+                <div className="absolute left-[-40px] top-1/2 transform -translate-y-1/2 z-10">
+                  <PiDotsThreeCircleVerticalBold
+                    className="cursor-pointer text-gray-500 hover:text-gray-700"
+                    onClick={() => toggleDropdown(msg._id)}
+                  />
+                  {dropdownVisible[msg._id] && (
+                    <div className="absolute left-0 top-0 mt-6 bg-white shadow-lg rounded-lg z-10">
+                      <button
+                            className="delete-button block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
+                            onClick={() => deleteMessage(msg._id)}
+                            style={{ display: dropdownVisible[msg._id] ? 'block' : 'none' }}
+                          >
+                            Delete
+                          </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
-    ) : (
-      <p>{msg.content}</p>
-    )}
+
+{msg.deleted === true ? (
+        <span className="deleted-message text-gray-500 italic">This message was deleted</span>
+      ) : (
+        <>
+                        {msg.isVoice ? (
+                          <audio controls src={msg.fileUrl}>
+                            Your browser does not support the audio element.
+                          </audio>
+
+                        ) : (
+                          <p>{msg.content}</p>
+                        )}
                         {msg.fileUrl && msg.fileType.startsWith('video/') && (
                           <video
                             controls
@@ -670,7 +720,7 @@ const stopRecording = () => {
                             controls
                             src={msg.fileUrl}
                             className="mt-2 max-w-full h-auto rounded-lg"
-                            // style={{ maxHeight: '300px' }}
+                          // style={{ maxHeight: '300px' }}
                           >
                             Your browser does not support the audio element.
                           </audio>
@@ -688,9 +738,11 @@ const stopRecording = () => {
                             {format(new Date(msg.createdAt), 'h:mm a')}
                           </p>
                         )}
+                         </>
+      )}
                         {/* <button onClick={() => deleteMessage(msg._id)}>Delete</button> */}
                       </div>
-                      
+
                     </div>
                   )
                 ))}
@@ -700,18 +752,20 @@ const stopRecording = () => {
               <p className="text-gray-500">Select a chat to view messages.</p>
             )}
           </div>
-  
+
+          {typing && <p className="text-xs">Typing...</p>}
+
           {/* Message Input */}
           {selectedChat && (
             <div className="p-4 border-t border-gray-200 flex items-center space-x-2">
               <button
-                className="p-2 bg-[#ccc89b] rounded-full hover:bg-[#a39f74]"
+                className="p-2 bg-[#a39f74] rounded-full  hover:bg-[#ccc89b] text-white"
                 onClick={() => setShowEmojiPicker(prev => !prev)}
               >
                 <GrEmoji />
               </button>
               {showEmojiPicker && (
-                <div className="absolute bottom-20 z-10">
+                <div className="absolute bottom-20 z-10 ">
                   <EmojiPicker onEmojiClick={handleEmojiClick} />
                 </div>
               )}
@@ -720,7 +774,7 @@ const stopRecording = () => {
                 value={messageInput}
                 onChange={e => setMessageInput(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a39f74]"
               />
               <input
                 type="file"
@@ -729,7 +783,7 @@ const stopRecording = () => {
                 className="hidden"
                 id="fileUpload"
               />
-              <label htmlFor="fileUpload" className="cursor-pointer p-2 bg-[#ccc89b] rounded-full hover:bg-[#a39f74]">
+              <label htmlFor="fileUpload" className="cursor-pointer p-2 bg-[#a39f74] rounded-full hover:bg-[#ccc89b] text-white">
                 <IoAttachSharp />
               </label>
               <button
@@ -739,7 +793,7 @@ const stopRecording = () => {
                 onTouchEnd={stopRecording}
                 className="p-2 bg-[#a39f74] text-white rounded-full hover:bg-[#ccc89b]"
               >
-                {isRecording ? 'Stop Recording' : 'Start Recording'}
+                {isRecording ? <FaStop /> : <FaMicrophone />}
               </button>
               <button
                 onClick={handleSendMessage}
@@ -753,8 +807,8 @@ const stopRecording = () => {
       </div>
     </div>
   );
-  
-  
+
+
 };
 
 

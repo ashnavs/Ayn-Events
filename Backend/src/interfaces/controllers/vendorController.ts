@@ -186,7 +186,7 @@ export default{
       console.log("reqbody", req.body);
     
       try {
-        // No need to transform services, as they are already in the correct format
+    
         const updatedVendor = await updateVendor(vendorId, { name, city, services });
     
         if (updatedVendor) {
@@ -213,7 +213,8 @@ export default{
       try {
         const bookings = await eventBookingModel.find({ vendor: vendorId })
           .populate('user')
-          .populate('vendor');
+          .populate('vendor')
+          .sort({ _id: -1 });
         console.log(bookings, "bookings"); // This should output the bookings
         res.json(bookings);
       } catch (error) {
@@ -240,41 +241,40 @@ export default{
     // },
 
     updateBookingStatus: async (req: Request, res: Response) => {
-      const { id } = req.params; // Extract booking ID from request parameters
+      const { id } = req.params; 
       const { status } = req.body; 
       console.log('id:',id)
       console.log('status:',status)
     
       try {
-        // Find and update the booking status
+        
         const booking = await eventBookingModel.findByIdAndUpdate(id, { status }, { new: true });
         if (!booking) {
           return res.status(404).json({ message: 'Booking not found' });
         }
     
-        // If the booking is rejected, update the user's wallet
+        
         if (status === 'Rejected') {
-          const userId = booking.user; // Assuming booking.user stores the user ID
+          const userId = booking.user;
           const amount = booking.amount;
     
-          // Find the user's wallet
+        
           const wallet = await walletModel.findOne({ userId });
           if (!wallet) {
             return res.status(404).json({ message: 'Wallet not found' });
           }
     
-          // Update wallet balance
+         
           wallet.balance += amount;
-    
-          // Add a new transaction record
+   
           wallet.transactions.push({
             amount,
             type: 'credit',
             date: new Date(),
-            booking: booking._id as mongoose.Types.ObjectId, // Reference to the booking
+            booking: booking._id as mongoose.Types.ObjectId,
           });
     
-          // Save the updated wallet
+         
           await wallet.save();
         }
     
@@ -299,14 +299,16 @@ export default{
     //     res.status(500).json({ message: 'Internal server error' });
     //   }
     // }
+
+
     getBookingDetails:async (req: Request, res: Response) => {
       const { bookingId } = req.params;
       console.log(bookingId, "😒");
       try {
         const booking = await eventBookingModel.findById(bookingId)
           .populate({
-            path: 'user', // Populate the 'user' field
-            select: 'name email' // Select specific fields to include in the response
+            path: 'user', 
+            select: 'name email' 
           })
           .exec();
     
@@ -320,6 +322,33 @@ export default{
         res.status(500).json({ message: 'Internal server error' });
       }
     },
+
+    // getBookingDetails: async (req: Request, res: Response) => {
+    //   const { bookingId } = req.params;
+    //   console.log(bookingId, "😒");
+    
+    //   try {
+    //     const booking = await eventBookingModel.findById(bookingId)
+    //       .populate({
+    //         path: 'user',
+    //         select: 'name email'
+    //       })
+    //       .sort({ _id: 1 }) // Sort by date in descending order (latest first)
+    //       .exec();
+    
+    //     console.log(booking, "💕");
+    
+    //     if (!booking) {
+    //       return res.status(404).json({ message: 'Booking not found' });
+    //     }
+    
+    //     res.status(200).json(booking);
+    //   } catch (error) {
+    //     console.error('Error fetching booking details:', error);
+    //     res.status(500).json({ message: 'Internal server error' });
+    //   }
+    // },
+    
     // getVendorCount: async (req: Request, res: Response) => {
     //   try {
     //     const vendorCounts = await vendorCount();
@@ -334,10 +363,10 @@ export default{
       console.log('hiii')
       try {
         const vendorCounts = await Vendor.countDocuments(); ;
-        console.log('Vendor count retrieved:', vendorCounts); // Log the count
+        console.log('Vendor count retrieved:', vendorCounts); 
         res.json(vendorCounts );
       } catch (error) {
-        console.error('Failed to fetch vendor count:', error); // More specific error log
+        console.error('Failed to fetch vendor count:', error); 
         res.status(500).json({ message: 'Failed to fetch vendor count' });
       }
     },
@@ -346,7 +375,7 @@ export default{
         const { vendorId } = req.params;
         console.log(vendorId,'vendoriddididid')
     
-        // Query to find all active chats for the given vendor
+     
         const activeChats = await ChatModel.find({
           users: vendorId,
           is_accepted: 'accepted'
@@ -354,7 +383,6 @@ export default{
 
         console.log(activeChats,'activeChats')
     
-        // Return the list of active chats
         res.status(200).json(activeChats);
       } catch (error) {
         console.error('Error fetching active chats:', error);
@@ -369,7 +397,7 @@ export default{
   try {
     const messages = await Message.find({ chat: chatId })
                                   .populate('sender', 'name')
-                                  .sort({ createdAt: 1 }); // Sort by creation time
+                                  .sort({ createdAt: 1 }); 
     
     res.json(messages);
   } catch (error) {
