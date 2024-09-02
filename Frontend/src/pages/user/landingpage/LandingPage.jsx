@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import './LandingPage.scss'; 
 import Services from '../../../components/Services';
 import Footer from '../../../components/Footer'
 
