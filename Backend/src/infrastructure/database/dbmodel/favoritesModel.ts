@@ -9,12 +9,12 @@ interface IFavorite extends Document {
 const FavoriteSchema: Schema = new Schema({
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', // Reference to User schema
+    ref: 'User', 
     required: true 
   },
   vendorId: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Vendor', // Reference to Vendor schema
+    ref: 'Vendor',
     required: true 
   },
   isFavorite: { type: Boolean, required: true },

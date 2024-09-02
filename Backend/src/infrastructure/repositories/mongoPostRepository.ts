@@ -1,4 +1,3 @@
-import { log } from "console";
 import Post from "../database/dbmodel/postModel"; 
 
 export const getPosts = async (vendorId: string) => {

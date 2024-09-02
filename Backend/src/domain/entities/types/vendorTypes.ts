@@ -26,14 +26,6 @@ export interface VendorQuery {
   city?: string;
 }
 
-// export interface UpdateVendorData {
-//   name?: string;
-//   city?: string;
-//   services?: {
-//     name: { type: String, required: true },
-//     price: { type: Number, required: true }
-//   }[];
-// }
 
 export interface UpdateVendorData {
   name?: string;

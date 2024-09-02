@@ -206,9 +206,7 @@ export default{
           throw error;
         }
       },
-    //   fetchVendorsByCategoryAndCity : async (service: string, city: string) => {
-    //     return getVendorsByCategoryAndCity(service, city);
-    //   },
+
       
     
     

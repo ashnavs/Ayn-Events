@@ -1,6 +1,6 @@
-// chatController.js (or similar file)
+
 import { log } from "console";
-import ChatModel, {IChatModel} from "../../infrastructure/database/dbmodel/chatModel";// Adjust path as necessary
+import ChatModel, {IChatModel} from "../../infrastructure/database/dbmodel/chatModel";
 import {Request , Response} from 'express'
 
 export default{
@@ -28,7 +28,7 @@ getMessages:async(req:Request , res:Response) => {
     log(roomId,'hiiiiiiiiii')
     try {
       const messages = await ChatModel.find({ chat: roomId }).exec();
-      console.log(messages,'msgs') // Adjust based on your schema
+      console.log(messages,'msgs') 
       res.json(messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -40,16 +40,15 @@ previousChats:async(req: Request, res: Response) => {
     const vendorId = req.params.vendorId;
     console.log(vendorId,'vviidd')
     
-    // Find chats with is_accepted 'accepted' and populate users
+
     const chats = await ChatModel.find({ is_accepted: 'accepted', users: vendorId })
-        .populate('users', 'name') // Adjust the fields you want to retrieve from the Users model
+        .populate('users', 'name') 
         .exec();
 
       if (!chats) {
         return res.status(404).json({ message: 'No accepted chats found.' });
       }
 
-      // Flatten the array of users from chats and remove duplicates
       const uniqueUsers = Array.from(
         new Set(chats.flatMap(chat => chat.users).filter(user => user._id.toString() !== vendorId))
       );

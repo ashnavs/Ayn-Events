@@ -1,11 +1,10 @@
 import { findAdmin } from "../../../infrastructure/repositories/mongoAdminRepository";
-import { IAdmin } from "../../entities/types/adminType";
 import { getAllUsers , updateUserStatus ,updateVendorStatus,updateServiceStatus,getPaginatedUsers, getPaginatedVendors, getUnverifiedVendors, getVendorById, updateVendorVerificationStatus} from "../../../infrastructure/repositories/mongoAdminRepository";
 import { generateToken } from "../../helper/jwtHelper";
 import { IUser  , PaginatedUsers} from "../../entities/types/userType"; 
 import { uploadToS3 } from "../../../utils/s3Uploader";
 import { Service ,IService} from "../../../infrastructure/database/dbmodel/serviceModel";
-import { log } from "console";
+
 
 
 

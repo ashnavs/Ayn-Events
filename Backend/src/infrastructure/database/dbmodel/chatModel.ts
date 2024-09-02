@@ -34,8 +34,8 @@ const ChatSchema: Schema = new Schema<IChatModel>(
     },
     is_accepted: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected'], // Define enum options
-      default: 'pending', // Default value is 'pending'
+      enum: ['pending', 'accepted', 'rejected'], 
+      default: 'pending', 
     },
     unreadCount: { type: Map, of: Number, default: {} },
   },

@@ -1,21 +1,17 @@
-import { NextFunction, Request, response, Response } from "express"
+import { NextFunction, Request,  Response } from "express"
 import vendorInteractor from "../../domain/usecases/auth/vendorInteractor";
 import { log } from "console";
-import { uploadToS3 } from "../../utils/s3Uploader";
 import { LicenseDataRequest } from "../../domain/entities/types/licenceType";
-import { getServiceName, getVendorById } from "../../infrastructure/repositories/mongoAdminRepository";
-import { updateVendor, vendorCount } from "../../infrastructure/repositories/mongoVendorrepository";
+import { updateVendor } from "../../infrastructure/repositories/mongoVendorrepository";
 import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
 import { getPosts } from "../../infrastructure/repositories/mongoPostRepository";
 import { Vendor } from "../../infrastructure/database/dbmodel/vendorModel";
 import Post from "../../infrastructure/database/dbmodel/postModel";
 import eventBookingModel from "../../infrastructure/database/dbmodel/eventBookingModel";
-import { UpdateVendorData } from "../../domain/entities/types/vendorTypes";
 import ChatModel from "../../infrastructure/database/dbmodel/chatModel";
 import Message from "../../infrastructure/database/dbmodel/MessageModel";
 import walletModel from "../../infrastructure/database/dbmodel/walletModel";
-import { Users } from "../../infrastructure/database/dbmodel/userModel";
-import mongoose, { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 
 
 export default{
@@ -170,16 +166,6 @@ export default{
         res.status(500).json({ error: 'Failed to get post' });
       }
     },
-    // getVendors : async (req: Request, res: Response): Promise<void> => {
-    //   const { service, city } = req.query;
-    
-    //   try {
-    //     const vendors = await vendorInteractor.fetchVendorsByCategoryAndCity(service as string, city as string);
-    //     res.status(200).json(vendors);
-    //   } catch (error) {
-    //     res.status(500).json({ message: 'Error fetching vendors', error });
-    //   }
-    // }
     updateVendor: async (req: Request, res: Response) => {
       const { vendorId } = req.params;
       const { name, city, services } = req.body;
@@ -215,30 +201,13 @@ export default{
           .populate('user')
           .populate('vendor')
           .sort({ _id: -1 });
-        console.log(bookings, "bookings"); // This should output the bookings
+        console.log(bookings, "bookings"); 
         res.json(bookings);
       } catch (error) {
         console.error('Error fetching bookings:', error);
         res.status(500).json({ message: 'Internal server error' });
       }
     },
-    // updateBookingStatus:async(req:Request,res:Response) => {
-    //   const { id } = req.params; // Extract booking ID from request parameters
-    //   const { status } = req.body; 
-    //   console.log("bookID:",id)
-    //   console.log("status:",status)
-
-    //   try {
-    //     const booking = await eventBookingModel.findByIdAndUpdate(id, {status} , {new:true});
-    //     if (!booking) {
-    //       return res.status(404).json({ message: 'Booking not found' });
-    //     }
-    //     res.status(200).json(booking)
-    //   } catch (error) {
-    //     console.error('Error updating booking status:', error);
-    //     res.status(500).json({ message: 'Internal server error' });
-    //   }
-    // },
 
     updateBookingStatus: async (req: Request, res: Response) => {
       const { id } = req.params; 
@@ -284,23 +253,7 @@ export default{
         res.status(500).json({ message: 'Internal server error' });
       }
     },
-    // getBookingDetails:async(req:Request , res:Response) => {
-    //   const {bookingId} = req.params
-    //   console.log(bookingId,"😒")
-    //   try {
-    //     const bookings = await eventBookingModel.findById(bookingId)
-    //     console.log(bookings,"💕")
-    //     if (!bookings) {
-    //       return res.status(404).json({ message: 'Booking not found' });
-    //     }
-    //     res.status(200).json(bookings)
-    //   } catch (error) {
-    //     console.error('Error updating booking details:', error);
-    //     res.status(500).json({ message: 'Internal server error' });
-    //   }
-    // }
-
-
+   
     getBookingDetails:async (req: Request, res: Response) => {
       const { bookingId } = req.params;
       console.log(bookingId, "😒");
@@ -323,42 +276,7 @@ export default{
       }
     },
 
-    // getBookingDetails: async (req: Request, res: Response) => {
-    //   const { bookingId } = req.params;
-    //   console.log(bookingId, "😒");
-    
-    //   try {
-    //     const booking = await eventBookingModel.findById(bookingId)
-    //       .populate({
-    //         path: 'user',
-    //         select: 'name email'
-    //       })
-    //       .sort({ _id: 1 }) // Sort by date in descending order (latest first)
-    //       .exec();
-    
-    //     console.log(booking, "💕");
-    
-    //     if (!booking) {
-    //       return res.status(404).json({ message: 'Booking not found' });
-    //     }
-    
-    //     res.status(200).json(booking);
-    //   } catch (error) {
-    //     console.error('Error fetching booking details:', error);
-    //     res.status(500).json({ message: 'Internal server error' });
-    //   }
-    // },
-    
-    // getVendorCount: async (req: Request, res: Response) => {
-    //   try {
-    //     const vendorCounts = await vendorCount();
-    //     console.log('Vendor count retrieved:', vendorCounts); // Log the count
-    //     res.json({ count: vendorCounts });
-    //   } catch (error) {
-    //     console.error('Failed to fetch vendor count:', error); // More specific error log
-    //     res.status(500).json({ message: 'Failed to fetch vendor count' });
-    //   }
-    // },
+ 
     getVendorCount: async (req: Request, res: Response) => {
       console.log('hiii')
       try {

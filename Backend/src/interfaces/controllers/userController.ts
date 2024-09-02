@@ -1,10 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import userInteractor from "../../domain/usecases/auth/userInteractor";
-import { generateOTP } from '../../utils/otpUtils'
-import sendOTPEmail from '../../utils/emailUtils'
 import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
 import { getServices, getUserbyEMail, userCount } from "../../infrastructure/repositories/mongoUserRepository";
-import { log } from "console";
 import jwt from 'jsonwebtoken'
 import { generateToken } from "../../domain/helper/jwtHelper";
 import { LicenseModel } from "../../infrastructure/database/dbmodel/licenceModel";
@@ -12,19 +9,14 @@ import { Users } from "../../infrastructure/database/dbmodel/userModel";
 import { Vendor } from "../../infrastructure/database/dbmodel/vendorModel";
 import { getPosts } from "../../infrastructure/repositories/mongoPostRepository";
 import { getReviewsAndRatings } from "../../infrastructure/repositories/mongoReviewRepository";
-import { saveBooking } from "../../infrastructure/repositories/mongoBookingRepository";
 import eventBookingModel from "../../infrastructure/database/dbmodel/eventBookingModel";
-import { VendorQuery } from "../../domain/entities/types/vendorTypes";
 import { getVendorsWithService } from "../../infrastructure/repositories/mongoVendorrepository";
 import { Encrypt } from "../../domain/helper/hashPassword";
 import { getServiceImages } from "../../infrastructure/repositories/mongoServiceRepository";
 import ChatModel from "../../infrastructure/database/dbmodel/chatModel";
 import Message from "../../infrastructure/database/dbmodel/MessageModel";
 import walletModel from "../../infrastructure/database/dbmodel/walletModel";
-import { ConnectContactLens } from "aws-sdk";
-import mongoose, { ObjectId } from 'mongoose';
-import {isAfter , subWeeks} from 'date-fns'
-import { Favorite } from "../../infrastructure/database/dbmodel/favoritesModel";
+import mongoose from 'mongoose';
 import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
 
 
@@ -272,98 +264,7 @@ export default {
       res.status(500).json({ message: 'Failed to fetch bookings' })
     }
   },
-    // getVendors:async(req:Request,res:Response) => {
-    //   try {
-    //     const {service,city} = req.query
-    //     log(`service:${service} city:${city}`)
 
-    //     try {
-    //       const vendors = await Vendor.find({
-    //         service:service,
-    //         city:city
-    //       })
-    //       res.status(200).json(vendors)
-    //       log(vendors,"filtervendors")
-    //     } catch (error) {
-          
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to fetch vendors', error);
-    //     res.status(500).json({ message: 'Failed to fetch vendors' })
-    //   }
-    // }
-
-
-    // getVendors:async (req: Request, res: Response) => {
-    //   try {
-    //     const { service, city } = req.query as VendorQuery; // Cast query to VendorQuery
-    //     console.log(`service: ${service} city: ${city}`); // Debug log
-    
-    //     const query: any = { is_verified: true, is_blocked: false }; // Use `any` type here for dynamic properties
-    //     if (service) query.service = service;
-    //     if (city) query.city = city;
-    
-    //     try {
-    //       let vendors;
-    //       if (!service && !city) {
-    //         // Fetch all vendors if no query parameters are provided
-    //         vendors = await getVendorsWithService();
-    //         log(vendors,"vvvvvv")
-    //       } else {
-    //         // Fetch vendors based on query parameters
-    //         vendors = await Vendor.find(query, {
-    //           _id: 1, name: 1, email: 1, city: 1, service: 1, is_blocked: 1
-    //         });
-    //       }
-    //       res.status(200).json(vendors);
-    //       console.log(vendors, "vendors"); // Debug log
-    //     } catch (error) {
-    //       console.error('Failed to fetch vendors', error);
-    //       res.status(500).json({ message: 'Failed to fetch vendors' });
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to fetch vendors', error);
-    //     res.status(500).json({ message: 'Failed to fetch vendors' });
-    //   }
-    // },
-
-  //   getVendors : async (req: Request, res: Response) => {
-  //     try {
-  //         const { service, city } = req.query as { service?: string; city?: string }; 
-  //         console.log(`service: ${service} city: ${city}`);
-  
-  //         const query: any = { is_verified: true, is_blocked: false };
-  //         if (service) {
-  //             query.services = { $elemMatch: { name: service } };
-  //         }
-  //         if (city) {
-  //             query.city = city;
-  //         }
-  
-  //         try {
-  //             let vendors;
-  //             if (!service && !city) {
-  //                 // Fetch all vendors if no query parameters are provided
-  //                 const result = await getVendorsWithService();
-  //                 vendors = result.vendors;
-  //                 console.log(vendors, "All vendors with services");
-  //             } else {
-  //                 // Fetch vendors based on query parameters
-  //                 vendors = await Vendor.find(query, {
-  //                     _id: 1, name: 1, email: 1, city: 1, services: 1, is_blocked: 1
-  //                 }).lean(); 
-  //                 console.log(vendors, "Filtered vendors");
-  //             }
-  //             res.status(200).json(vendors);
-  //         } catch (error) {
-  //             console.error('Failed to fetch vendors', error);
-  //             res.status(500).json({ message: 'Failed to fetch vendors' });
-  //         }
-  //     } catch (error) {
-  //         console.error('Failed to fetch vendors', error);
-  //         res.status(500).json({ message: 'Failed to fetch vendors' });
-  //     }
-  // },  
 
   //new:
   getVendors:async (req: Request, res: Response) => {
@@ -453,88 +354,9 @@ export default {
         res.status(500).json({ message: 'Internal server error' });
       }
     },
-    //   updateBookingStatus:async(req:Request,res:Response) => {
-    //   const { bookingId } = req.params; // Extract booking ID from request parameters
-    //   const { status } = req.body; 
-    //   console.log("bookID:",bookingId)
-    //   console.log("status:",status)
-
-    //   try {
-    //     const booking = await eventBookingModel.findByIdAndUpdate(bookingId, {status} , {new:true});
-    //     if (!booking) {
-    //       return res.status(404).json({ message: 'Booking not found' });
-    //     }
-    //     res.status(200).json(booking)
-    //   } catch (error) {
-    //     console.error('Error updating booking status:', error);
-    //     res.status(500).json({ message: 'Internal server error' });
-    //   }
-    // },
-
-// updateBookingStatus : async (req: Request, res: Response) => {
-//   const { bookingId } = req.params; // Extract booking ID from request parameters
-//   const { status } = req.body;
-
-//   console.log("bookID:", bookingId);
-//   console.log("status:", status);
-
-//   try {
-//     // Find and update the booking status
-//     const booking = await eventBookingModel.findByIdAndUpdate(bookingId, { status }, { new: true });
-//     if (!booking) {
-//       return res.status(404).json({ message: 'Booking not found' });
-//     }
-
-//     // Ensure the user ID is retrieved correctly
-//     const userId = booking.user.toString();
-//     console.log("userID:", userId);
-
-//     // If the booking is canceled, credit the amount back to the user's wallet
-//     if (status === 'Cancelled') {
-//       const wallet = await walletModel.findOne({ userId });
-
-//       if (!wallet) {
-//         console.log("Wallet not found, creating new wallet...");
-
-//         // Create a new wallet if it doesn't exist
-//         const newWallet = new walletModel({
-//           userId,
-//           balance: booking.payment.amount,
-//           transactions: [{
-//             amount: booking.payment.amount,
-//             type: 'credit',
-//             date: new Date(),
-//           }],
-//         });
-
-//         const savedWallet = await newWallet.save();
-//         console.log("New wallet created:", savedWallet);
-
-//       } else {
-//         console.log("Wallet found, updating balance...");
-
-//         // Add the amount to the existing wallet
-//         wallet.balance += booking.payment.amount;
-//         wallet.transactions.push({
-//           amount: booking.payment.amount,
-//           type: 'credit',
-//           date: new Date(),
-//         });
-
-//         const updatedWallet = await wallet.save();
-//         console.log("Wallet updated:", updatedWallet);
-//       }
-//     }
-
-//     res.status(200).json(booking);
-//   } catch (error) {
-//     console.error('Error updating booking status:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// },
 
 updateBookingStatus:async (req: Request, res: Response) => {
-  const { bookingId } = req.params; // Extract booking ID from request parameters
+  const { bookingId } = req.params; 
   const { status } = req.body;
 
   try {
@@ -715,25 +537,7 @@ updateBookingStatus:async (req: Request, res: Response) => {
         }
       }
     },
-    // getWallets:async(req:Request,res:Response) => {
-    //   try {
-    //     // Extract userId from req.params
-    //     const { userId } = req.params;
-    //     console.log(userId, "Received userId");
-    
-    //     const walletData = await walletModel.findOne({ userId }); // Adjust as per your schema
-
-    //     if (!walletData) {
-    //       return res.status(404).json({ message: 'Wallet not found' });
-    //     }
-    
-    //     // Send the wallet data as response
-    //     res.json(walletData);
-    //   } catch (error) {
-    //     console.error('Error fetching wallet data:', error);
-    //     res.status(500).json({ message: 'Internal Server Error' });
-    //   }
-    // }
+   
 
      getWallets : async (req: Request, res: Response) => {
       try {

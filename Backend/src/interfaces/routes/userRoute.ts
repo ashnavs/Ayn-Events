@@ -30,7 +30,6 @@ userRouter.post('/checkAvailability',userController.checkAvailability)
 userRouter.get('/bookings', userController.getBookings)
 userRouter.get('/vendors',userController.getVendors)
 userRouter.put('/updateuser/:userId',userController.updateUser)
-// userRouter.get('/bookingdetails/:bookingId',userController.getBookingDetails)
 userRouter.get('/booking/:userId',userController.bookingDetails)
 userRouter.patch('/bookings/:bookingId/cancel',userController.updateBookingStatus)
 userRouter.put('/change-password',userController.changePassword)
@@ -44,8 +43,6 @@ userRouter.get('/wallet/:userId',userController.getWallets)
 userRouter.get('/favorites/:userId' , favoritesController.getFavorites)
 userRouter.get('/allbookings',userController.getAllBookings)
 userRouter.get('/get-services',userController.getAllServices)
-// userRouter.get('/reviews',userController.getReviews)
-// userRouter.post()
 
 
 

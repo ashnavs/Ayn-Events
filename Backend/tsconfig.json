@@ -1,27 +1,4 @@
 
-// {
-//   "compilerOptions": {
-//     "target": "ES6",
-//     "module": "commonjs",
-//     "outDir": "./dist",
-//     "rootDir": "./src",
-//     "strict": true,
-//     "esModuleInterop": true,
-//     "moduleResolution": "node",
-//     "sourceMap": true,
-//     "allowSyntheticDefaultImports": true,
-//     "declaration": true,
-//     "noImplicitAny": true,
-//     "skipLibCheck": true,
-//     "types": ["node", "jest", "cors"],
-//     "typeRoots": ["./node_modules/@types", "./src/domain/entities/types"]
-//   },
-//   "include": ["src/**/*"],
-//   "exclude": ["node_modules"]
-// }
-
-
-
 {
   "compilerOptions": {
     "target": "ES6",
@@ -32,7 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node", "jest", "cors"],
+    "types": ["node", "cors"],
     "typeRoots": ["./node_modules/@types", "./src/domain/entities/types"]
     
   },

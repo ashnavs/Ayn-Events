@@ -1,8 +1,6 @@
-// BookingModel.ts
-
 import mongoose, { Document, Schema } from 'mongoose';
 
-// Address Interface
+
 export interface IAddress {
   city: string;
   state: string;
@@ -10,13 +8,13 @@ export interface IAddress {
   phone: number;
 }
 
-// Payment Interface
+
 export interface IPayment {
   amount: number;
   transaction_id: string;
 }
 
-// Booking Interface
+
 export interface IBooking extends Document {
   date: Date;
   event_name: string;
@@ -30,7 +28,7 @@ export interface IBooking extends Document {
   payment: IPayment;
 }
 
-// Address Schema
+
 const addressSchema = new Schema<IAddress>({
   city: { type: String, required: true },
   state: { type: String, required: true },
@@ -38,13 +36,13 @@ const addressSchema = new Schema<IAddress>({
   phone: { type: Number, required: true }
 });
 
-// Payment Schema
+
 const paymentSchema = new Schema<IPayment>({
   amount: { type: Number, required: true },
   transaction_id: { type: String }
 });
 
-// Booking Schema
+
 const bookingSchema = new Schema<IBooking>({
   date: { type: Date, required: true }, 
   event_name: { type: String, required: true },

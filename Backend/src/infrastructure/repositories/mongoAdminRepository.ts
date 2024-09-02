@@ -2,8 +2,6 @@ import { Admin } from "../database/dbmodel/adminModel";
 import { Users } from "../database/dbmodel/userModel";
 import { IUser, PaginatedUsers } from "../../domain/entities/types/userType";
 import { Vendor } from "../database/dbmodel/vendorModel";
-import { PaginatedVendors } from "../../domain/entities/types/vendorTypes";
-import { LicenseModel } from "../database/dbmodel/licenceModel";
 import{ Service , IService} from "../database/dbmodel/serviceModel";
 import { log } from "console";
 

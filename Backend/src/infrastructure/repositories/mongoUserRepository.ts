@@ -2,7 +2,6 @@ import  { Iuser, Users } from "../database/dbmodel/userModel";
 import { IUser } from "../../domain/entities/types/userType";
 import OTPModel from "../database/dbmodel/otpModel";
 import { Encrypt } from "../../domain/helper/hashPassword";
-import { Vendor } from "../database/dbmodel/vendorModel";
 import { Service } from "../database/dbmodel/serviceModel";
 import Report from "../database/dbmodel/reportModel";
 

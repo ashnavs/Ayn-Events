@@ -1,5 +1,5 @@
-import { log } from "console";
-import Booking ,{IBooking}  from "../database/dbmodel/eventBookingModel"
+
+import Booking, { IBooking } from "../database/dbmodel/eventBookingModel"
 
 
 export const checkAvailabilityByDate = async (date: Date, vendorId: string): Promise<IBooking | null> => {
@@ -9,13 +9,12 @@ export const checkAvailabilityByDate = async (date: Date, vendorId: string): Pro
 
 export const saveBooking = async (bookingData: Partial<IBooking>): Promise<IBooking> => {
 
-  console.log('Booking data received:', bookingData); // Add this line to debug
 
-    const booking = new Booking({
-      ...bookingData,
-      status: 'pending',
-    });
-  console.log(booking,"boooooooooooo")
+  const booking = new Booking({
+    ...bookingData,
+    status: 'pending',
+  });
+  console.log(booking, "boooooooooooo")
   await booking.save();
   return booking;
 };

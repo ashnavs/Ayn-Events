@@ -20,7 +20,6 @@ adminRouter.get('/userlist',protectAdmin,adminController.getUsers)
 adminRouter.get('/users', adminController.getUsers); 
 adminRouter.patch('/blockUser/:userId',adminController.blockUser);
 adminRouter.get('/verifyvendor',protectAdmin,adminController.getVendors)
-// adminRouter.get('/unverified', adminController.getUnverifiedVendors);
 adminRouter.get('/vendor/:id',protectAdmin,adminController.getVendorById);
 adminRouter.get('/license/:email', protectAdmin,adminController.getLicenseByVendorEmail);
 adminRouter.patch('/updatestatus/:id',protectAdmin, adminController.updateVendorVerificationStatus);

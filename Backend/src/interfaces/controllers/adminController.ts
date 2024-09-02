@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import adminInteractor from "../../domain/usecases/auth/adminInteractor";
 import { Vendor } from "../../infrastructure/database/dbmodel/vendorModel";
-import multer from "multer";
-import { License, LicenseModel } from "../../infrastructure/database/dbmodel/licenceModel";
+import {  LicenseModel } from "../../infrastructure/database/dbmodel/licenceModel";
 import { log } from "console";
 import { getAllVendors } from "../../infrastructure/repositories/mongoVendorrepository";
 import { getServices } from "../../infrastructure/repositories/mongoAdminRepository";
@@ -73,17 +72,7 @@ export default {
       res.status(500).json({ error: 'Failed to fetch vendors' });
     }
   },
-  //   getUnverifiedVendors : async (req: Request, res: Response, next: NextFunction) => {
-  //     try {
-  //         const { page = 1, limit = 10 } = req.query;
-  //         const vendors = await adminInteractor.fetchUnverifiedVendors(Number(page), Number(limit));
-  //         res.status(200).json(vendors);
-  //     } catch (error: any) {
-  //         console.error(error.message);
-  //         res.status(500).json({ error: error.message });
-  //         next(error);
-  //     }
-  // },
+
 
   getVendorById: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -181,7 +170,7 @@ export default {
   },
   getServices: async (req: Request, res: Response) => {
     try {
-      const { page = 1, limit = 5 } = req.query; // Adjusted limit to match frontend
+      const { page = 1, limit = 5 } = req.query; 
       const services = await getServices(Number(page), Number(limit));
       res.status(200).json(services);
     } catch (err) {
@@ -215,7 +204,7 @@ export default {
     log('Report details call');
     try {
       const { id } = req.params;
-      const report = await Report.find({ vendorId: id }).populate('vendorId', 'name'); // Populate vendor name
+      const report = await Report.find({ vendorId: id }).populate('vendorId', 'name'); 
       log(report, 'Report details');
   
       if (!report) {

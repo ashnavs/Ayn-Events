@@ -1,4 +1,3 @@
-import { Iuser, Users } from "../../../infrastructure/database/dbmodel/userModel";
 import { createUser , saveOtp,verifyUserDb, getUserbyEMail, googleUser, checkExistingUser, getStatus } from "../../../infrastructure/repositories/mongoUserRepository";
 import { Encrypt } from '../../helper/hashPassword'
 import { IUser } from "../../entities/types/userType";
