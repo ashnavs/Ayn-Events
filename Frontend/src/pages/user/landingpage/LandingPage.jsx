@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './LandingPage.scss'; 
+import Services from '../../../components/Services';
+import Footer from '../../../components/Footer'
 
 function LandingPage() {
 
+ 
+
 
   return (
+    <>
     <header className="header relative h-screen bg-cover bg-center" style={{ backgroundImage: "url('https://marrymetampabay.com/wp-content/uploads/2018/02/18-8.jpg')" }}>
       <div className="overlay absolute inset-0 bg-black bg-opacity-40 overflow-hidden">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -19,6 +24,11 @@ function LandingPage() {
         </div>
       </div>
     </header>
+    <div className="flex justify-center mt-10">
+        <Services/>
+      </div>
+      <Footer/>
+    </>
   );
 }
 

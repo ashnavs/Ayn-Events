@@ -43,6 +43,7 @@ userRouter.get('/rooms/:roomId',userController.getMessagesByRoomId)
 userRouter.get('/wallet/:userId',userController.getWallets)
 userRouter.get('/favorites/:userId' , favoritesController.getFavorites)
 userRouter.get('/allbookings',userController.getAllBookings)
+userRouter.get('/get-services',userController.getAllServices)
 // userRouter.get('/reviews',userController.getReviews)
 // userRouter.post()
 

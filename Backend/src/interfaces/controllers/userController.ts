@@ -25,6 +25,7 @@ import { ConnectContactLens } from "aws-sdk";
 import mongoose, { ObjectId } from 'mongoose';
 import {isAfter , subWeeks} from 'date-fns'
 import { Favorite } from "../../infrastructure/database/dbmodel/favoritesModel";
+import { Service } from "../../infrastructure/database/dbmodel/serviceModel";
 
 
 
@@ -765,6 +766,15 @@ updateBookingStatus:async (req: Request, res: Response) => {
       } catch (error) {
         console.error('Error fetching bookings:' , error)
         res.status(500).json({message:'Internal serevr error'})
+      }
+    },
+    getAllServices:async(req:Request , res:Response) => {
+      try {
+        const services = await Service.find({is_active:true});
+        res.status(200).json(services)
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        res.status(500).json({ message: 'Internal server error' });
       }
     }
     

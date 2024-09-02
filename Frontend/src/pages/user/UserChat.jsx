@@ -33,6 +33,8 @@ const UserChat = () => {
   const [dropdownVisible, setDropdownVisible] = useState({}); 
   const [unreadCounts, setUnreadCounts] = useState({});
   const [replyToMessage, setReplyToMessage] = useState(null);
+  const [message, setMessage] = useState('');
+
 
 
   
@@ -328,6 +330,7 @@ const playAudio = (voiceFileUrl) => {
           content: messageInput,
           senderModel,
           timestamp: new Date(),
+          replyTo: replyToMessage ? replyToMessage._id : null, 
           ...fileData,
         };
   
@@ -340,7 +343,7 @@ const playAudio = (voiceFileUrl) => {
           setSelectedFile(null);
           setFilePreview(null);
           setShowEmojiPicker(false);
-  
+          setReplyToMessage(null); // Clear reply state
           document.getElementById('fileUpload').value = '';
         } catch (error) {
           console.error('Error sending message:', error);
@@ -565,11 +568,10 @@ const playAudio = (voiceFileUrl) => {
       [messageId]: !prevState[messageId],
     }));
   };
-  
-  const handleReply = (messageId) => {
-    setReplyToMessage(messageId);  // Set the message to reply to
+  const handleReply = (message) => {
+    setReplyToMessage(message);
   };
-
+  
 
 
 
@@ -727,6 +729,7 @@ const playAudio = (voiceFileUrl) => {
           messagesByRoom[selectedRoom].map((msg) => (
             <div
               key={msg._id}
+              
               className={`relative mb-2 p-2 rounded-lg max-w-fit ${
                 msg.senderModel === 'User' ? 'ml-auto bg-blue-100' : 'mr-auto bg-gray-200'
               }`}
@@ -748,7 +751,7 @@ const playAudio = (voiceFileUrl) => {
                       </button>
                       <button
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
-                      onClick={() => handleReply(messageId)}>Reply</button>
+                      onClick={() => handleReply(message)}>Reply</button>
                     </div>
                   )}
                 </div>
@@ -801,6 +804,7 @@ const playAudio = (voiceFileUrl) => {
                 </>
               )}
             </div>
+            
           ))
         ) : (
           <p>No messages yet</p>
@@ -808,6 +812,14 @@ const playAudio = (voiceFileUrl) => {
       ) : (
         <p>No messages yet.</p>
       )}
+       <div key={message._id} className="message">
+    {message.replyTo && (
+      <div className="reply-message">
+        <p>Replying to: {message.replyTo.content}</p>
+      </div>
+    )}
+    <p>{message.content}</p>
+  </div>
     </>
   ) : (
     <p>Select a chat to start messaging.</p>
@@ -816,10 +828,12 @@ const playAudio = (voiceFileUrl) => {
 
 {replyToMessage && (
   <div className="reply-preview">
-    <span>Replying to: {replyToMessage.content}</span>
+    <p>Replying to: {replyToMessage.content}</p>
     <button onClick={() => setReplyToMessage(null)}>Cancel</button>
   </div>
 )}
+
+
 
 
           {typing && <p className="text-xs">Typing...</p>}
