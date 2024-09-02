@@ -24,7 +24,7 @@ axiosInstanceUser.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    config.withCredentials = true; // Include credentials in the request
+    config.withCredentials = true;
 
     return config;
   },
@@ -33,7 +33,7 @@ axiosInstanceUser.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle responses and errors globally
+
 export const setupInterceptors = (navigate, dispatch, logoutAction, toast) => {
 axiosInstanceUser.interceptors.response.use(
   (response) => {
@@ -47,7 +47,7 @@ axiosInstanceUser.interceptors.response.use(
       console.error("Status Code:", error.response.status);
       console.error("Headers:", error.response.headers);
 
-    // Handle errors (e.g., token expiration, network errors)
+
     if (error.response && error.response.status === 401 &&  error.response.data.message === 'Token expired' && 
       !originalRequest._retry
     ) {
@@ -75,10 +75,7 @@ axiosInstanceUser.interceptors.response.use(
         toast.error('Session expired. Please log in again.');
         navigate('/login');
     }
-      // Redirect or handle unauthorized access
-      // console.error('Unauthorized access:', error);
-      // Example: redirect to login page
-      // window.location.href = '/login';
+
     }
   }
     return Promise.reject(error);

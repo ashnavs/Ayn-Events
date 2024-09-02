@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import ReactECharts from 'echarts-for-react'; // Import the ECharts React wrapper
-import axiosInstanceUser from '../../services/axiosInstanceUser'; // Adjust the import path as needed
+import ReactECharts from 'echarts-for-react'; 
+import axiosInstanceUser from '../../services/axiosInstanceUser'; 
 
 const ActiveUsersVendorsChart = () => {
   const [chartOptions, setChartOptions] = useState(null);
@@ -9,26 +9,25 @@ const ActiveUsersVendorsChart = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axiosInstanceUser.get('/allbookings'); // Adjust the endpoint if necessary
+        const response = await axiosInstanceUser.get('/allbookings'); 
         const bookings = response.data;
 
-        // Create sets to store unique user and vendor IDs
         const activeUsers = new Set();
         const activeVendors = new Set();
 
-        // Process bookings data
+
         bookings.forEach(booking => {
           if (booking.user) {
-            activeUsers.add(booking.user); // Add user ID to the set
+            activeUsers.add(booking.user); 
           }
           if (booking.vendor) {
-            activeVendors.add(booking.vendor); // Add vendor ID to the set
+            activeVendors.add(booking.vendor);
           }
         });
 
         // Debugging outputs
-        console.log("Active Users Set:", [...activeUsers]); // Debug: Check active users
-        console.log("Active Vendors Set:", [...activeVendors]); // Debug: Check active vendors
+        console.log("Active Users Set:", [...activeUsers]); 
+        console.log("Active Vendors Set:", [...activeVendors]);
 
         // Prepare chart data
         const chartData = [
@@ -80,7 +79,7 @@ const ActiveUsersVendorsChart = () => {
           },
         };
 
-        // Update state with chart options
+
         setChartOptions(options);
         setLoading(false);
       } catch (error) {

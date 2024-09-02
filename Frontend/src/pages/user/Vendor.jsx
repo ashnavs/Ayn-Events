@@ -9,8 +9,6 @@ function Vendor() {
   return (
     <div>
       <Header/>
-      {/* <HeroBanner/> */}
-      {/* <VendorsFound/> */}
       <Footer/>
     </div>
   )

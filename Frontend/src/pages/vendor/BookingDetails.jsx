@@ -28,7 +28,6 @@ function BookingDetails() {
           amount: booking.amount,
           paymentAmount: booking.payment.amount,
           paymentTransactionId: booking.payment.transaction_id,
-          // date: booking.date,
           date: format(new Date(booking.date), 'dd/MM/yyyy'),
           isConfirmed: booking.is_confirmed,
           status: booking.status 

@@ -1,5 +1,3 @@
-// LoginPage.jsx
-
 import React, { useEffect } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -14,7 +12,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error ,user } = useSelector((state) => state.auth);
-console.log("Auth state:", useSelector((state) => state.auth)); // Log entire state
+console.log("Auth state:", useSelector((state) => state.auth)); 
 
 
   useEffect(()=>{
@@ -39,7 +37,6 @@ console.log("Auth state:", useSelector((state) => state.auth)); // Log entire st
         idToken,
         email: user.email,
         name: user.displayName,
-        // Add any additional user data you need
       };
 
       dispatch(GoogleAuth(userData))

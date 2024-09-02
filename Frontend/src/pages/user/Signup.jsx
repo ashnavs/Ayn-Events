@@ -35,7 +35,6 @@ useEffect(()=>{
                 console.log('GoogleAuth response:', response); 
                 if (response.meta.requestStatus === 'fulfilled') {
                     const userId = response.payload.response.user?.id;
-                    // const token = response.payload.response.token;
                     if (userId) {
                         console.log('Signup successful. User ID:', userId);
                         toast.success('User signed up with Google');

@@ -9,7 +9,7 @@ const FavoritesPage = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = useSelector(selectUser);
-  const userId = user.id; // Ensure this is the correct way to get the user ID
+  const userId = user.id;
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -18,7 +18,7 @@ const FavoritesPage = () => {
         const response = await axiosInstanceUser.get(`/favorites/${userId}`);
         const favoriteItems = response.data;
 
-        // Fetch license details for each favorite vendor
+
         const licenses = await Promise.all(
           favoriteItems.map(async (favorite) => {
             const licenseResponse = await axiosInstanceUser.get(`/license/${favorite.vendorId.email}`);
@@ -42,7 +42,7 @@ const FavoritesPage = () => {
       <Header />
       <div className="flex flex-grow overflow-hidden">
         <ProfileSidebar />
-        <div className="flex-grow overflow-y-auto p-6 ml-64"> {/* Added margin-left */}
+        <div className="flex-grow overflow-y-auto p-6 ml-64"> 
           <div className="container mx-auto p-12">
             <h2 className="text-lg font-semibold mb-4">Found {favorites.length} favorites...</h2>
             {loading ? (
@@ -57,7 +57,7 @@ const FavoritesPage = () => {
                     className="bg-white shadow rounded overflow-hidden cursor-pointer"
                   >
                     <img
-                      src={favorite.license.logoUrl || 'default-image-url'} // Use the actual default image URL
+                      src={favorite.license.logoUrl || 'default-image-url'} 
                       alt={favorite.vendorId.name}
                       className="w-full h-40 object-cover"
                     />

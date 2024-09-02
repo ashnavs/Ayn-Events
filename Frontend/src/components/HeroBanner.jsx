@@ -9,7 +9,6 @@ const HeroBanner = ({ setVendors }) => {
   const [services, setServices] = useState([]);
 
   useEffect(() => {
-    // Fetch cities and services when the component mounts
     const getCities = async () => {
       try {
         const citiesData = await fetchCities();
@@ -35,7 +34,6 @@ const HeroBanner = ({ setVendors }) => {
 
   const handleFilter = async () => {
     try {
-      // Fetch vendors based on selected filters
       const response = await axiosInstanceUser.get('/vendors', {
         params: { service: category, city }
       });

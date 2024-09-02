@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstanceUser from '../services/axiosInstanceUser';
@@ -44,7 +43,7 @@ const VendorsFound = ({ vendors }) => {
             className="bg-white shadow rounded overflow-hidden cursor-pointer"
           >
             <img
-              src={licenseLogos[vendor.email] || 'default-image-url'} // Replace 'default-image-url' with an actual default image URL if needed
+              src={licenseLogos[vendor.email] || 'default-image-url'} 
               alt={vendor.name}
               className="w-full h-40 object-cover"
             />

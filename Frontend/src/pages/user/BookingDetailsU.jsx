@@ -28,7 +28,6 @@ function BookingDetailsU() {
               phone: booking.address.phone,
               paymentAmount: booking.payment.amount,
               paymentTransactionId: booking.payment.transaction_id,
-              // date: booking.date,
               date: format(new Date(booking.date), 'dd/MM/yyyy'),
               isConfirmed: booking.is_confirmed,
               status: booking.status 
@@ -44,18 +43,7 @@ function BookingDetailsU() {
         fetchBookingData();
       }, []);
 
-      // const handleStatusChange = async (bookingId, newStatus) => {
-      //   try {
-      //     const response = await axiosInstanceUser.patch(`/bookings/${bookingId}/cancel`, { status: newStatus });
-      //     setBookingData(prevData =>
-      //       prevData.map(item =>
-      //         item.bookingId === bookingId ? { ...item, status: newStatus } : item
-      //       )
-      //     );
-      //   } catch (error) {
-      //     console.error('Error updating status:', error);
-      //   }
-      // };
+ 
 
       const handleStatusChange = async (bookingId, newStatus) => {
         try {

@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axiosInstanceUser from '../services/axiosInstanceUser';
 
 const ImageGrid = ({ vendorId }) => {
-  const [allPosts, setAllPosts] = useState([]); // Store all fetched images
-  const [postsToShow, setPostsToShow] = useState([]); // Images to display
-  const [itemsPerPage] = useState(8); // Items to show initially and on each load
-  const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [allPosts, setAllPosts] = useState([]); 
+  const [postsToShow, setPostsToShow] = useState([]); 
+  const [itemsPerPage] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1); 
   const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
@@ -14,11 +14,10 @@ const ImageGrid = ({ vendorId }) => {
         const response = await axiosInstanceUser.get(`/getposts/${vendorId}`);
         const allPostsData = response.data || [];
 
-        setAllPosts(allPostsData); // Store all fetched images
-        setPostsToShow(allPostsData.slice(0, itemsPerPage)); // Show the first set of images
-
+        setAllPosts(allPostsData); 
+        setPostsToShow(allPostsData.slice(0, itemsPerPage)); 
         if (allPostsData.length <= itemsPerPage) {
-          setHasMore(false); // If all images are already loaded, stop further loading
+          setHasMore(false); 
         }
       } catch (error) {
         console.error('Error fetching posts:', error);
@@ -36,7 +35,7 @@ const ImageGrid = ({ vendorId }) => {
     setCurrentPage(newPage);
 
     if (newPostsToShow.length >= allPosts.length) {
-      setHasMore(false); // If all images are loaded, stop loading more
+      setHasMore(false); 
     }
   };
 
@@ -45,7 +44,7 @@ const ImageGrid = ({ vendorId }) => {
       <div className="grid grid-cols-4 gap-4 mt-10 max-w-6xl">
         {postsToShow.map((post) => (
           <div
-            key={post._id} // Ensure unique key
+            key={post._id}
             className="relative overflow-hidden rounded-lg shadow-lg"
           >
             <img

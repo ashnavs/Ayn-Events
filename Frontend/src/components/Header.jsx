@@ -15,7 +15,6 @@ const Header = () => {
   const user = useSelector(selectUser)
   const unreadCount = useSelector((state) => state.chat.unreadCount);
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
-  // const [unreadCount, setUnreadCount] = useState(0);
   const {socket} = useSocket();
 
 
@@ -69,7 +68,6 @@ const Header = () => {
       </div>
       <nav className="flex space-x-8 text-sm">
         <Link to="/home" className="text-white hover:underline">Home</Link>
-        {/* <Link to="/vendors" className="text-white hover:underline">Vendors</Link> */}
         <div className="relative group">
           <Link to="/profile">
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }}>

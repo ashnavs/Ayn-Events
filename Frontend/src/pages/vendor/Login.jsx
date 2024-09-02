@@ -55,7 +55,6 @@ const Login = () => {
         </Formik>
         <div className="mt-4 text-center">
           <p className="text-gray-600">Don't have an account? <a href="/vendor/signup" className="text-[#a39f74] hover:underline">Sign Up</a></p>
-          {/* <p className="text-gray-600"><a href="/forgot-password" className="text-[#a39f74] hover:underline">Forgot password?</a></p> */}
         </div>
       </div>
     </div>

@@ -34,10 +34,6 @@ function ProfileSidebar() {
           </li>
         </ul>
       </div>
-      {/* <div className="flex items-center p-4 hover:bg-[#eae7e1]">
-        <FaPowerOff className="mr-2 text-[#a39f74]" />
-        <Link to="/logout" className="text-gray-700 hover:text-gray-900">Logout</Link>
-      </div> */}
     </div>
   );
 }

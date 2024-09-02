@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const chatSlice = createSlice({
   name: 'chat',
   initialState: {
-    unreadCount: 0, // Initial unread message count
+    unreadCount: 0, 
   },
   reducers: {
     updateUnreadCount: (state, action) => {

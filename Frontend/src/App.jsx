@@ -20,7 +20,7 @@ function App() {
         <Route path='/admin/*' element={<AdminRoutes />} />
         <Route path='/vendor/*' element={<VendorRoutes/>} />
       </Routes>
-      // <Toaster position="top-right" />
+
    
   );
 }

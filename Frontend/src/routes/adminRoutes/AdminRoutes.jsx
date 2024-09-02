@@ -1,5 +1,3 @@
-
-// import AdminLogin from '../../pages/admin/AdminLogin';
 import AddService from '../../pages/admin/AddService';
 import AdminLogin from '../../pages/admin/AdminLogin';
 import Dashboard from '../../pages/admin/Dashboard';

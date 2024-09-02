@@ -4,18 +4,6 @@
   import Cookies from 'js-cookie';
 import axiosInstanceVendor from '../../services/axiosInstanceVenndor';
 
-  // export const signupVendor = createAsyncThunk(
-  //     'vendor/signupVendor',
-  //     async (vendorData, { rejectWithValue }) => {
-  //       try {
-  //         const response = await axios.post('http://localhost:5000/api/vendor/signup', vendorData );
-  //         console.log(response);
-  //         return response.data; 
-  //       } catch (error) {
-  //         return rejectWithValue(error.response.data);
-  //       }
-  //     }
-  //   );
 
   export const signupVendor = createAsyncThunk(
     'vendor/signup',
@@ -62,7 +50,7 @@ import axiosInstanceVendor from '../../services/axiosInstanceVenndor';
           return response.data; 
         } catch (error) {
           console.error('Error uploading license:', error);
-          return rejectWithValue(error.response.data); // Return error message
+          return rejectWithValue(error.response.data); 
         }
       }
     );

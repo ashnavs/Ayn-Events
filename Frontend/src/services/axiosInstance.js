@@ -7,7 +7,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type':'application/json',
   },
-  withCredentials: true, // Ensure credentials are included in requests
+  withCredentials: true, 
 
 });
 
@@ -29,7 +29,6 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle errors (e.g., token expiration, network errors)
     if (error.response && error.response.status === 401) {
 
       console.error('Unauthorized access:', error);

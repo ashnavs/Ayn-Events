@@ -27,11 +27,6 @@ export const toggleUserStatus = createAsyncThunk('admin/toggleUserStatus', async
   return response.data;
 });
 
-// export const addService = createAsyncThunk('admin/addService', async (formData) => {
-//   const response = await axiosInstance.post('/addservice', formData);
-//   console.log(response);
-//   return response.data;
-// });
 
 export const addService = createAsyncThunk('admin/addService', async (formData, { rejectWithValue }) => {
   try {

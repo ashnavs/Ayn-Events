@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { useFormik } from 'formik';
@@ -63,7 +62,6 @@ const EditProfileModal = ({ isOpen, onRequestClose, vendor,  onVendorUpdated  })
         await axiosInstanceVendor.put(`/${vendor._id}`, updatedValues);
         onRequestClose();
         onVendorUpdated();
-        // Optionally, trigger a refresh of the vendor data here
       } catch (error) {
         console.error('Failed to update profile:', error);
       }

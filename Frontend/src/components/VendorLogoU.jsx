@@ -21,8 +21,6 @@
       const userName = userId.name
       console.log(userId.id)
       const { id } = useParams();
-      // const { id: vendorId } = useParams();
-      // console.log(id)
       const [vendor, setVendor] = useState(null);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
@@ -57,7 +55,6 @@
         if (socket) {
           socket.on('chatRequestAccepted', (room) => {
             setIsAccepted('accepted');
-            // Navigate to chat room or open chat UI
           });
         }
         return () => {
@@ -221,7 +218,7 @@
             color: '#3399cc'
           },
           modal: {
-            ondismiss: () => console.log('Payment modal dismissed') // Optional logging
+            ondismiss: () => console.log('Payment modal dismissed')
           }
         };
         console.log('Amount in paise:', amount);
@@ -271,21 +268,6 @@
           console.log('Chat request sent');
         }
       };
-
-      // const handleFavoriteClick = async () => {
-      //   try {
-      //     const response = await axios.post('http://localhost:5000/api/favorites/addtofavorites', {
-      //       userId,  // Include userId in the request
-      //       vendorId: vendor._id,
-      //       isFavorite: !isFavorite,
-      //     });
-      //     if (response.status === 200) {
-      //       setIsFavorite(!isFavorite);
-      //     }
-      //   } catch (error) {
-      //     console.error('Error updating favorite status:', error);
-      //   }
-      // };
       const handleFavoriteClick = async () => {
         try {
           const response = await axios.post('http://localhost:5000/api/favorites/addtofavorites', {
@@ -347,9 +329,6 @@
              
 
               <div className="mt-4 flex justify-around">
-                {/* <button className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md"
-                onClick={handleChatRequest}
-                >Chat with us</button> */}
                  <button
               className="bg-[#CBC8AF] text-white py-2 px-4 rounded-md"
               onClick={handleChatRequest}
@@ -553,15 +532,7 @@
                         placeholder="Pincode"
                         required
                       />
-                      {/* <Field
-                        type="text"
-                        name="phone"
-                        className="w-full p-2 border rounded mb-4"
-                        placeholder="Phone"
-                        required
-                      /> */}
-
-                      <div className="flex justify-end">
+                         <div className="flex justify-end">
                         <button
                           type="button"
                           className="px-4 py-2 bg-gray-500 text-white rounded mr-2"

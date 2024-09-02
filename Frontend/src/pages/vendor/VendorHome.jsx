@@ -1,51 +1,4 @@
-// // vendorHome.jsx
-// import React from 'react';
-// import VendorHeader from '../../components/VendorHeader';
-// import VendorLogo from '../../components/VendorLogo';
-// import ImageGrid from '../../components/ImageGrid';
 
-// function VendorHome() {
-//   return (
-//     <div>
-//       <VendorHeader />
-//       <VendorLogo/>
-//       <ImageGrid vendorId={vendorId} />
-//     </div>
-//   );
-// }
-
-// export default VendorHome;
-
-
-// import React, { useState } from 'react';
-// import VendorHeader from '../../components/VendorHeader';
-// import VendorLogo from '../../components/VendorLogo';
-// import ImageGrid from '../../components/ImageGrid';
-// import { useSelector } from 'react-redux';
-// import { selectVendor } from '../../features/vendor/vendorSlice';
-
-// function VendorHome() {
-//   const vendorId = useSelector(selectVendor)?.vendor?.id;
-//   const [posts, setPosts] = useState([]);
-
-//   if (!vendorId) {
-//     return <div>Loading...</div>;
-//   }
-
-//   return (
-//     <div>
-//       <VendorHeader />
-//       <VendorLogo vendorId={vendorId} setPosts={setPosts} />
-//       <ImageGrid vendorId={vendorId} posts={posts} setPosts={setPosts} />
-//     </div>
-//   );
-// }
-
-// export default VendorHome;
-
-
-
-//new
 import React, { useState, useEffect } from 'react';
 import VendorHeader from '../../components/VendorHeader';
 import VendorLogo from '../../components/VendorLogo';
@@ -83,7 +36,7 @@ function VendorHome() {
   };
 
   const handlePostCreated = (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]); // Add new post to the beginning of the posts array
+    setPosts((prevPosts) => [newPost, ...prevPosts]);
   };
 
   return (

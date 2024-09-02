@@ -91,7 +91,6 @@ function ReportDetail() {
             />
          
               <span className={`relative inline-block mt-0 px-3 py-1 font-semibold leading-tight ${!blockedStatus ? 'text-green-900' : 'text-red-900'}`}>
-                {/* <span aria-hidden className={`absolute inset-0 opacity-50 rounded-full ${!blockedStatus ? 'bg-[#A39F74] dark:bg-[#A39F74]' : 'bg-red-200 dark:bg-red-600'}`}></span> */}
                 <span className="relative">{!blockedStatus ? 'Active' : 'Blocked'}</span>
               </span>
             

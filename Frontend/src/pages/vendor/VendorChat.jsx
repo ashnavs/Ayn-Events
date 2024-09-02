@@ -6,7 +6,6 @@ import { resetUnreadCount } from '../../features/chat/chatSlice';
 import { selectUser } from '../../features/auth/authSlice';
 import axiosInstanceVendor from '../../services/axiosInstanceVenndor';
 import EmojiPicker from 'emoji-picker-react';
-import { FaPaperPlane, FaSmile } from 'react-icons/fa';
 import { GrEmoji } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
 import { IoAttachSharp } from "react-icons/io5";
@@ -22,9 +21,7 @@ import { FaMicrophone, FaStop } from "react-icons/fa";
 const VendorChat = () => {
   const vendor = useSelector(selectVendor);
   const vendorId = vendor.vendor.id;
-  // console.log(vendorId.name)
   const user = useSelector(selectUser);
-  // const userId = user.id;
   const dispatch = useDispatch()
 
   const messagesEndRef = useRef(null);
@@ -71,7 +68,7 @@ const VendorChat = () => {
       socket.on('typing', (data) => {
         if (data.roomId === selectedChat?._id) {
           setTyping(true);
-          setTimeout(() => setTyping(false), 2000); // Clear typing indicator after 2 seconds
+          setTimeout(() => setTyping(false), 2000); 
         }
       });
 
@@ -99,47 +96,13 @@ const VendorChat = () => {
     }
   }, [socket, vendor, selectedChat, activeChats, dispatch, chatRequests.length]);
 
-  // useEffect(() => {
-  //   socket.on('message', (newMessage) => {
-  //     setMessages((prevMessages) => [...prevMessages, newMessage]);
-  //   });
-  // }, []);
-
-  //   useEffect(() => {
-  //     if (socket && selectedChat) {
-  //         socket.on('receiveMessage', (message) => {
-  //             console.log('Received message:', message);
-
-  //             // Only update messages if the message belongs to the selected chat
-  //             if (message.chat === selectedChat._id) {
-  //                 setMessagesByRoom((prevMessagesByRoom) => {
-  //                     const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
-  //                     return {
-  //                         ...prevMessagesByRoom,
-  //                         [selectedChat._id]: [...roomMessages, message],
-  //                     };
-  //                 });
-  //             }
-
-  //             setUnreadCounts(prevCounts => {
-  //               const currentCount = prevCounts[message.chat] || 0;
-  //               console.log('Updating unread count for room:', message.chat, 'Current count:', currentCount + 1);
-  //               return { ...prevCounts, [message.chat]: currentCount + 1 };
-  //             });
-  //         });
-
-  //         return () => {
-  //             socket.off('receiveMessage');
-  //         };
-  //     }
-  // }, [socket, selectedChat]);
 
   useEffect(() => {
     if (socket && selectedChat) {
       socket.on('receiveMessage', (message) => {
         console.log('Received message:', message);
 
-        // Only update messages if the message belongs to the selected chat
+  
         if (message.chat === selectedChat._id) {
           setMessagesByRoom((prevMessagesByRoom) => {
             const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
@@ -158,7 +121,7 @@ const VendorChat = () => {
 
         }
 
-        // Re-sort active chats based on the latest message timestamp
+
         setActiveChats((prevChats) => {
           const updatedChats = prevChats.map(chat => {
             if (chat._id === message.chat) {
@@ -170,7 +133,7 @@ const VendorChat = () => {
             return chat;
           });
 
-          // Sort the chats by the latest message's createdAt timestamp
+ 
           return updatedChats.sort((a, b) => {
             const latestMessageA = a.latestMessage?.createdAt || 0;
             const latestMessageB = b.latestMessage?.createdAt || 0;
@@ -187,42 +150,6 @@ const VendorChat = () => {
 
 
 
-
-
-
-  // useEffect(() => {
-  //   if (socket && selectedChat) {
-  //     socket.on('messageDeleted', (data) => {
-  //       console.log('Deleted message data:', data);
-  
-  //       const { messageId } = data; // Extract messageId from the data
-  
-  //       setMessagesByRoom((prevMessagesByRoom) => {
-  //         const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
-  //         const updatedMessages = roomMessages.map((msg) => {
-  //           if (msg._id === messageId) {
-  //             return { ...msg, deleted: true }; // Mark the message as deleted
-  //           }
-  //           return msg;
-  //         });
-  
-  //         return {
-  //           ...prevMessagesByRoom,
-  //           [selectedChat._id]: updatedMessages,
-  //         };
-  //       });
-  //     });
-  //     setDropdownVisible((prevState) => ({
-  //       ...prevState,
-  //       [messageId]: false,
-  //     }));
-  
-  //     return () => {
-  //       socket.off('messageDeleted');
-  //     };
-  //   }
-  // }, [socket, selectedChat]);
-
 useEffect(() => {
   if (socket && selectedChat) {
     socket.on('messageDeleted', (data) => {
@@ -232,7 +159,7 @@ useEffect(() => {
         const roomMessages = prevMessagesByRoom[selectedChat._id] || [];
         const updatedMessages = roomMessages.map((msg) => {
           if (msg._id === messageId) {
-            return { ...msg, deleted: true }; // Mark the message as deleted
+            return { ...msg, deleted: true }; 
           }
           return msg;
         });
@@ -243,7 +170,7 @@ useEffect(() => {
         };
       });
 
-      // Hide the delete button after message is deleted
+  
       setDropdownVisible((prevState) => ({
         ...prevState,
         [messageId]: false,
@@ -275,7 +202,7 @@ useEffect(() => {
   }, [messagesByRoom[selectedChat?._id]]);
 
 
-  // Emitting delete request
+
   const deleteMessage = (messageId) => {
     socket.emit('deleteMessage', messageId);
   };
@@ -299,36 +226,12 @@ useEffect(() => {
     }
   };
 
-  //   const handleSendVoiceMessage = async () => {
-  //     if (audioChunks.length > 0) {
-  //         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-  //         const file = new File([blob], `voice_message_${Date.now()}.webm`, { type: blob.type }); // Use Date.now() for a unique filename
-  //         const reader = new FileReader();
-
-  //         reader.onloadend = () => {
-  //             const base64AudioMessage = reader.result.split(',')[1];
-
-  //             socket.emit('sendMessage', {
-  //                 roomId: selectedChat,
-  //                 sender: vendorId,
-  //                 senderModel: 'Vendor',
-  //                 audio: base64AudioMessage,
-  //                 voiceFileName: file.name,
-  //                 voiceFileType: file.type,
-  //             });
-  //         };
-
-  //         reader.readAsDataURL(file);
-  //     }
-  // };
-
-
   const handleSendVoiceMessage = (audioBase64) => {
     socket.emit('sendMessage', {
-      roomId: selectedChat._id,  // Ensure selectedChat is used correctly
+      roomId: selectedChat._id,  
       sender: vendorId,
       senderModel: 'Vendor',
-      audio: audioBase64,  // Pass the base64 string of the audio
+      audio: audioBase64,
       voiceFileName: `voice_message_${Date.now()}.webm`,
       voiceFileType: 'audio/webm',
     });
@@ -354,8 +257,8 @@ useEffect(() => {
           const audioBlob = new Blob(newAudioChunks, { type: 'audio/webm' });
           const reader = new FileReader();
           reader.onloadend = () => {
-            const audioBase64 = reader.result.split(',')[1];  // Extract base64 from DataURL
-            handleSendVoiceMessage(audioBase64);  // Send the audio data
+            const audioBase64 = reader.result.split(',')[1];  
+            handleSendVoiceMessage(audioBase64);  
           };
           reader.readAsDataURL(audioBlob);
         };
@@ -389,10 +292,10 @@ useEffect(() => {
 
         if (selectedImage) {
           fileBase64 = await convertImageToBase64(selectedImage);
-          fileUrl = URL.createObjectURL(selectedImage); // Create blob URL
+          fileUrl = URL.createObjectURL(selectedImage); 
           fileName = selectedImage.name;
 
-          // Optional: Revoke the URL after a timeout to avoid memory leaks
+
           setTimeout(() => URL.revokeObjectURL(fileUrl), 10000);
         }
 
@@ -410,15 +313,6 @@ useEffect(() => {
 
         try {
           socket.emit('sendMessage', messageData);
-
-          // setMessagesByRoom((prevMessagesByRoom) => {
-          //   const roomMessages = prevMessagesByRoom[roomId] || [];
-          //   return {
-          //     ...prevMessagesByRoom,
-          //     [roomId]: [...roomMessages, messageData],
-          //   };
-          // });
-
           setMessageInput('');
           setShowEmojiPicker(false);
           setSelectedImage(null);
@@ -434,35 +328,17 @@ useEffect(() => {
     }
   };
 
-  // Helper function to convert image to Base64
+
   const convertImageToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result.split(',')[1]); // Remove the data URL part
+      reader.onloadend = () => resolve(reader.result.split(',')[1]); 
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
   };
 
-  // const handleSelectedChat = async (chatId) => {
-  //   try {
-  //     const response = await axiosInstanceVendor.get(`/messages/${chatId}`);
-  //     const messages = response.data;
 
-  //     setMessagesByRoom((prevMessagesByRoom) => ({
-  //       ...prevMessagesByRoom,
-  //       [chatId]: messages,
-  //     }));
-
-  //     const chat = activeChats.find(chat => chat._id === chatId);
-  //     if (chat) {
-  //       setSelectedChat(chat);
-  //       socket.emit('join_room', chatId); // Make sure vendor joins the correct chat room
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching messages:', error);
-  //   }
-  // };
   const handleSelectedChat = async (chatId) => {
     try {
       const response = await axiosInstanceVendor.get(`/messages/${chatId}`);

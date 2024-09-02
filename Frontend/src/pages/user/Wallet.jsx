@@ -31,7 +31,6 @@ function WalletPage() {
       <div className="flex flex-grow">
         <ProfileSidebar />
         <div className="flex-grow overflow-y-auto p-6 ml-64">
-          {/* Added ml-64 to account for the sidebar width */}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="bg-[#c7c3a2] p-5 text-white">
               <h1 className="text-3xl font-bold">Wallet</h1>

@@ -16,15 +16,15 @@ const Dashboard = () => {
     const fetchCounts = async () => {
       try {
         const userResponse = await axiosInstanceUser.get('/count');
-        console.log("userResponse:", userResponse.data); // This should log '6'
+        console.log("userResponse:", userResponse.data); 
         const vendorResponse = await axiosInstanceVendor.get('/count');
         console.log('vendorResponse:',vendorResponse.data)
         
-        setUserCount(userResponse.data); // Set the user count directly
-        setVendorCount(vendorResponse.data); // Adjust this based on the vendor response structure
+        setUserCount(userResponse.data); 
+        setVendorCount(vendorResponse.data); 
   
-        console.log('User Count:', userResponse.data); // Logging the correct user count
-        console.log('Vendor Count:', vendorResponse.data.count || vendorResponse.data); // Logging the correct vendor count
+        console.log('User Count:', userResponse.data); 
+        console.log('Vendor Count:', vendorResponse.data.count || vendorResponse.data);
       } catch (error) {
         console.error('Error fetching counts:', error);
       }

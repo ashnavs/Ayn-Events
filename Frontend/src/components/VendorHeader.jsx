@@ -9,12 +9,6 @@ import { updateUnreadCount } from '../features/chat/chatSlice';
 import { useSocket } from '../services/socketProvider';
 import { BsChatDotsFill } from 'react-icons/bs'
 
-
-
-
-
-
-
 const VendorHeader = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -61,12 +55,6 @@ const VendorHeader = () => {
         <Link to="/vendor/profile" className="text-white hover:text-gray-200 flex items-center">
           <span className="ml-2">Home</span>
         </Link>
-        {/* <div className="relative">
-          <button className="focus:outline-none">
-            <FiBell className="h-6 w-6 text-white" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500"></span>
-          </button>
-        </div> */}
         <Link to='/vendor/chat'>
         <button className="relative">
           <BsChatDotsFill size={19} className='text-white' />

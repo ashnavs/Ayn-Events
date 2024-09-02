@@ -35,7 +35,7 @@ const AddService = () => {
   const [serviceToToggle, setServiceToToggle] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 5; // Adjust as needed, this sets the limit of items per page
+  const limit = 5; 
 
   const openModal = () => {
     setModalIsOpen(true);
@@ -85,8 +85,8 @@ const AddService = () => {
     try {
       const response = await axiosInstance.get(`http://localhost:5000/api/admin/get-services?page=${currentPage}&limit=${limit}`);
       console.log('API Response:', response.data);
-      setServices(response.data.services); // Update services state
-      setTotalPages(response.data.totalPages); // Update totalPages state
+      setServices(response.data.services); 
+      setTotalPages(response.data.totalPages); 
     } catch (err) {
       console.error('Failed to fetch services:', err.response ? err.response.data : err.message);
     }

@@ -50,21 +50,6 @@ export const loginUser = createAsyncThunk(
   }
 )
 
-// export const loginUser = createAsyncThunk(
-//   'auth/loginUser',
-//   async (userData, { rejectWithValue }) => {
-//     try {
-//       const response = await authService.login(userData);
-//       console.log("Login Slice response", response);
-//       Cookies.set('token', response.data.response.token);
-//       return response.data;
-//     } catch (error) {
-//       console.log("Login slice error", error);
-//       return rejectWithValue(error.response ? error.response.data : error.message);
-//     }
-//   }
-// );
-
 
 export const clearUser = createAsyncThunk(
   'auth/clearUser',
@@ -123,18 +108,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // .addCase(signupUser.pending, (state) => {
-      //   state.loading = true;
-      //   state.error = null;
-      // })
-      // .addCase(signupUser.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   state.user = action.payload; // Ensure this sets the user with email
-      // })
-      // .addCase(signupUser.rejected, (state, action) => {
-      //   state.loading = false;
-      //   state.error = action.payload;
-      // })
+
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;

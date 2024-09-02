@@ -9,13 +9,13 @@ const BookingsChart = () => {
     useEffect(() => {
       const fetchBookings = async () => {
         try {
-          const response = await axiosInstanceUser.get('/allbookings'); // Adjust the endpoint if necessary
+          const response = await axiosInstanceUser.get('/allbookings'); 
           const bookings = response.data;
   
-          // Aggregate bookings by month
+      
         const bookingsByMonth = bookings.reduce((acc, booking) => {
             const date = new Date(booking.date);
-            const month = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}`; // e.g., "2024-08"
+            const month = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}`; 
   
             if (!acc[month]) {
               acc[month] = 1;
@@ -25,12 +25,12 @@ const BookingsChart = () => {
             return acc;
           }, {});
   
-          // Prepare data for the chart
+          
           const labels = Object.keys(bookingsByMonth).sort(
             (a, b) => new Date(a) - new Date(b)
           );
           const data = labels.map(month => bookingsByMonth[month]);
-          // Define the ECharts option
+       
           const options = {
             title: {
               text: 'Total Bookings Over Time',
@@ -43,8 +43,8 @@ const BookingsChart = () => {
               type: 'category',
               data: labels,
               axisLabel: {
-                rotate: 45, // Rotate labels if dates are long
-                formatter: value => value, // Customize as needed
+                rotate: 45,
+                formatter: value => value, 
               },
             },
             yAxis: {
@@ -54,7 +54,7 @@ const BookingsChart = () => {
             series: [
               {
                 name: 'Bookings',
-                type: 'line', // Change to 'bar', 'pie', etc., as needed
+                type: 'line', 
                 data: data,
                 smooth: true,
                 lineStyle: {
@@ -89,7 +89,7 @@ const BookingsChart = () => {
     }, []);
   
     if (loading) {
-      return <p>Loading chart...</p>; // You can replace this with a spinner or any loading indicator
+      return <p>Loading chart...</p>; 
     }
   
     if (!chartOptions) {

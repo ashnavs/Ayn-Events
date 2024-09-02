@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
-import axiosInstanceUser from '../services/axiosInstanceUser';
 import ConfirmationModal from './ConfirmationModal';
 
 const TableRow = ({ bookingId, date, username, vendorname, event, status, paymentAmount, onStatusChange, isUserSide, onStatusCancel }) => {

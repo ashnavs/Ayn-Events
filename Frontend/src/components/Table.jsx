@@ -1,5 +1,3 @@
-// Table.jsx
-
 import React from 'react';
 import TableRow from './TableRow';
 
@@ -10,9 +8,6 @@ const Table = ({ data, onStatusChange, isUserSide, onStatusCancel }) => {
         <div className="w-1/6">
           <p className="text-gray-800 font-semibold">DATE</p>
         </div>
-        {/* <div className="w-1/6">
-          <p className="text-gray-800 font-semibold">USERNAME</p>
-        </div> */}
         <div className="w-1/6">
           <p className="text-gray-800 font-semibold">{isUserSide ? 'VENDORNAME' : 'USERNAME'}</p>
         </div>
@@ -46,7 +41,7 @@ const Table = ({ data, onStatusChange, isUserSide, onStatusCancel }) => {
           paymentAmount={item.paymentAmount}
           onStatusChange={onStatusChange}
           onStatusCancel={onStatusCancel}
-          isUserSide={isUserSide} // Ensure this is passed correctly
+          isUserSide={isUserSide}
         />
       ))}
     </div>

@@ -22,7 +22,7 @@ const vendorPersistConfig = {
   storage,
 };
 
-const chatPersistConfig = { // Optional persistence for chat state
+const chatPersistConfig = { 
   key: 'chat',
   storage,
 };
@@ -30,7 +30,7 @@ const chatPersistConfig = { // Optional persistence for chat state
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedAdminReducer = persistReducer(adminPersistConfig, adminReducer);
 const persistedVendorReducer = persistReducer(vendorPersistConfig, vendorReducer);
-const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer); // Persist chatSlice if required
+const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer); 
 
 
 const rootReducer = combineReducers({
