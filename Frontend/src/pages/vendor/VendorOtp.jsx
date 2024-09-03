@@ -22,7 +22,7 @@ function VendorOtp() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/vendor/otp-vendor', { otp, email });
+      const response = await axios.post('https://ashna.site/api/vendor/otp-vendor', { otp, email });
       toast.success(response.data.message);
       navigate('/vendor/uploadlicense', { state: { email } }); 
     } catch (error) {
@@ -37,7 +37,7 @@ function VendorOtp() {
   const handleResend = async () => {
     const { email } = location.state || {};
     try {
-      await axios.post('http://localhost:5000/api/vendor/resend-otp', { email });
+      await axios.post('https://ashna.site/api/vendor/resend-otp', { email });
       toast.success('OTP resent successfully');
       setTimer(60); 
       setIsResendEnabled(false);

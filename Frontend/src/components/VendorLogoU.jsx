@@ -67,7 +67,7 @@
       useEffect(() => {
         const fetchFavoriteStatus = async () => {
           try {
-            const response = await axios.get(`http://localhost:5000/api/favorites/status?vendorId=${id}&userId=${userid}`);
+            const response = await axios.get(`https://ashna.site/api/favorites/status?vendorId=${id}&userId=${userid}`);
             setIsFavorite(response.data.isFavorite);
           } catch (error) {
             console.error('Error fetching favorite status:', error);
@@ -270,7 +270,7 @@
       };
       const handleFavoriteClick = async () => {
         try {
-          const response = await axios.post('http://localhost:5000/api/favorites/addtofavorites', {
+          const response = await axios.post('https://ashna.site/api/favorites/addtofavorites', {
             userId: userId,
             vendorId: vendor._id,
             isFavorite: !isFavorite,
