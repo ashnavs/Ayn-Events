@@ -1,8 +1,9 @@
-
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import session from 'express-session';
 import cors from 'cors';
-import dotenv from 'dotenv';
+
 import connectDB from './infrastructure/config/db';
 import userRoutes from './interfaces/routes/userRoute';
 import adminRoutes from './interfaces/routes/adminRoute';
@@ -18,7 +19,7 @@ const app = express();
 const server = http.createServer(app);
 
 
-dotenv.config();
+
 connectDB();
 
 
