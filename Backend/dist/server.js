@@ -23,7 +23,7 @@ dotenv_1.default.config();
 (0, db_1.default)();
 const PORT = process.env.PORT || 5000;
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: 'https://ayn-events.vercel.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -40,7 +40,7 @@ app.use((0, express_session_1.default)({
 }));
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: 'https://ayn-events.vercel.app',
         methods: ['GET', 'POST'],
     },
 });
