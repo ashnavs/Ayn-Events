@@ -5,7 +5,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 
-const baseURL= 'http://localhost:5000/api/users'
+const baseURL= 'https://ashna.site/api/users'
 const axiosInstanceUser = axios.create({
   baseURL, 
   headers: {

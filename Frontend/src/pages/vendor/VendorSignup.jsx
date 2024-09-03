@@ -23,7 +23,7 @@ const VendorSignup = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const serviceResponse = await axios.get('http://localhost:5000/api/vendor/service-types');
+        const serviceResponse = await axios.get('https://ashna.site/api/vendor/service-types');
         const services = serviceResponse.data;
         setServices(services.map(service => ({ label: service, value: service })));
 
