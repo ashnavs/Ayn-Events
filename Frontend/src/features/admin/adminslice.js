@@ -18,12 +18,12 @@ export const loginAdmin = createAsyncThunk(
 );
 
 export const fetchUsers = createAsyncThunk('admin/fetchUsers', async () => {
-  const response = await axios.get('http://localhost:5000/api/admin/userlist');
+  const response = await axios.get('https://ashna.site/api/admin/userlist');
   return response.data;
 });
 
 export const toggleUserStatus = createAsyncThunk('admin/toggleUserStatus', async ({ userId, isBlocked }) => {
-  const response = await axios.post('http://localhost:5000/api/admin/block-user', { userId, is_blocked: isBlocked });
+  const response = await axios.post('https://ashna.site/api/admin/block-user', { userId, is_blocked: isBlocked });
   return response.data;
 });
 
