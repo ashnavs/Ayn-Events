@@ -34,7 +34,7 @@ const UserOtp = () => {
     }
     
     try {
-      const response = await axios.post('https://ashna.site/api/users/otp-verification', { otp, email });
+      const response = await axios.post('https://ayn-events.onrender.com/api/users/otp-verification', { otp, email });
       console.log(response.data);
       navigate('/login');
       toast.success(response.data.message);
@@ -53,7 +53,7 @@ const UserOtp = () => {
     const { email } = location.state || {};
     console.log('Resending OTP...');
     try {
-      await axios.post('https://ashna.site/api/users/resend-otp', { email });
+      await axios.post('https://ayn-events.onrender.com/api/users/resend-otp', { email });
       toast.success('OTP resent successfully');
       setTimer(60); 
       setIsResendEnabled(false);

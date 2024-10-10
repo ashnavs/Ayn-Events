@@ -1,7 +1,7 @@
 // services/authService.js
 import axios from 'axios';
 
-const API_URL = 'https://ashna.site/api/users';
+const API_URL = 'https://ayn-events.onrender.com/api/users';
 
 
 export const login = async (credentials) => {

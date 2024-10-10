@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const axiosInstanceVendor = axios.create({
-    baseURL: 'https://ashna.site/api/vendor',
+    baseURL: 'https://ayn-events.onrender.com/api/vendor',
     headers: {
       'Content-Type': 'application/json',
     },
