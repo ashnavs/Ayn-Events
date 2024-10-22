@@ -67,7 +67,7 @@
       useEffect(() => {
         const fetchFavoriteStatus = async () => {
           try {
-            const response = await axios.get(`https://ashna.site
+            const response = await axios.get(`https://ayn-events.onrender.com
 /api/favorites/status?vendorId=${id}&userId=${userid}`);
             setIsFavorite(response.data.isFavorite);
           } catch (error) {
@@ -271,7 +271,7 @@
       };
       const handleFavoriteClick = async () => {
         try {
-          const response = await axios.post('https://ashna.site
+          const response = await axios.post('https://ayn-events.onrender.com
 /api/favorites/addtofavorites', {
             userId: userId,
             vendorId: vendor._id,

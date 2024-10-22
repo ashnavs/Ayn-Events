@@ -9,7 +9,7 @@ import axiosInstanceVendor from '../../services/axiosInstanceVenndor';
     'vendor/signup',
     async (vendorData, { rejectWithValue }) => {
       try {
-        const response = await axios.post('https://ashna.site
+        const response = await axios.post('https://ayn-events.onrender.com
 /api/vendor/signup', vendorData);
         console.log(response.data,"vendor slice");
         return response.data;

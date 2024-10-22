@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 
 const axiosInstance = axios.create({
-  baseURL: 'https://ashna.site
+  baseURL: 'https://ayn-events.onrender.com
 /api/admin', 
   headers: {
     'Content-Type':'application/json',

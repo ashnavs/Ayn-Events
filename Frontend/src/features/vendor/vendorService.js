@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://ashna.site
+const API_URL = 'https://ayn-events.onrender.com
 /api/vendor';
 
 export const loginVendor = async (credentials) => {

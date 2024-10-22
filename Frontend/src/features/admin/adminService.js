@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = 'https://ashna.site/api/admin';
+const API_URL = 'https://ayn-events.onrender.com/api/admin';
 
 const adminLogin = async (credentials) => {
     try {

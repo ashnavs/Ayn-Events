@@ -1,7 +1,7 @@
 // services/authService.js
 import axios from 'axios';
 
-const API_URL = 'https://ashna.site
+const API_URL = 'https://ayn-events.onrender.com
 /api/users';
 
 

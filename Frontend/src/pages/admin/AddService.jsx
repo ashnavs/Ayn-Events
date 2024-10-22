@@ -83,7 +83,7 @@ const AddService = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axiosInstance.get(`https://ashna.site
+      const response = await axiosInstance.get(`https://ayn-events.onrender.com
 /api/admin/get-services?page=${currentPage}&limit=${limit}`);
       console.log('API Response:', response.data);
       setServices(response.data.services); 
