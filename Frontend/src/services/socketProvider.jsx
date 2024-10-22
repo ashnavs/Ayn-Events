@@ -13,7 +13,8 @@ function SocketProvider({children}) {
 
     useEffect(() => {
         if (!socket) {
-          const newSocket = io('https://ayn-events.onrender.com');
+          const newSocket = io('https://ashna.site
+');
           newSocket.on('connect', () => {
             console.log('Socket connected:', newSocket.id);
             setSocket(newSocket);

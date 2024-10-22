@@ -17,7 +17,8 @@ export const fetchCities = async () => {
 
 export const fetchServices = async () => {
   try {
-    const response = await axios.get('https://ayn-events.onrender.com/api/vendor/service-types');
+    const response = await axios.get('https://ashna.site
+/api/vendor/service-types');
     console.log(response,"❤️");
     return response.data;
   } catch (error) {

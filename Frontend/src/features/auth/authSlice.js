@@ -8,7 +8,8 @@ export const signupUser = createAsyncThunk(
   'auth/signupUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('https://ayn-events.onrender.com/api/users/signup', userData );
+      const response = await axios.post('https://ashna.site
+/api/users/signup', userData );
       return response.data; 
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -20,7 +21,8 @@ export const GoogleAuth = createAsyncThunk(
   'auth/GoogleAuth',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('https://ayn-events.onrender.com/api/users/googleAuth', userData );
+      const response = await axios.post('https://ashna.site
+/api/users/googleAuth', userData );
       Cookies.set('token',response.data.response.token)
       Cookies.set('refreshToken',response.data.response.refreshToken)
       

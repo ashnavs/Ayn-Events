@@ -5,7 +5,8 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 
-const baseURL= 'https://ayn-events.onrender.com/api/users'
+const baseURL= 'https://ashna.site
+/api/users'
 const axiosInstanceUser = axios.create({
   baseURL, 
   headers: {
