@@ -213,7 +213,6 @@ exports.default = {
             if (!report) {
                 return res.status(404).json({ message: 'Report not found' });
             }
-            console.log(report, 'Report details');
             res.status(200).json(report);
         }
         catch (error) {

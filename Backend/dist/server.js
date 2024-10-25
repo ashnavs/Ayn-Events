@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
 const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = __importDefault(require("./infrastructure/config/db"));
 const userRoute_1 = __importDefault(require("./interfaces/routes/userRoute"));
 const adminRoute_1 = __importDefault(require("./interfaces/routes/adminRoute"));
@@ -19,7 +20,6 @@ const http_1 = __importDefault(require("http"));
 const messageRoute_1 = __importDefault(require("./interfaces/routes/messageRoute"));
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
-dotenv_1.default.config();
 (0, db_1.default)();
 const PORT = process.env.PORT || 5000;
 const corsOptions = {
@@ -28,6 +28,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
+app.options('*', (0, cors_1.default)(corsOptions)); // handle preflight requests for all routes
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));

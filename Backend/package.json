@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_OPTIONS='--max-old-space-size=1024' nodemon src/server.ts"
+    "start": "cross-env NODE_OPTIONS=--max-old-space-size=1024 nodemon dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -49,6 +49,7 @@
     "@types/otp-generator": "^4.0.2",
     "@types/socket.io": "^3.0.2",
     "@types/uuid": "^10.0.0",
+    "cross-env": "^7.0.3",
     "crypto": "^1.0.1",
     "nodemon": "^3.1.3",
     "ts-node": "^10.9.2",
